@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Expense</title>
+  <!-- Bootstrap CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+  >
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/new_expense.css') }}">
+  <style>
+    /* Example styling to mimic the soft purple look */
+    body {
+      background-color: #f7f4fa; /* Light purple background */
+    }
+    .sidebar {
+      background-color: #fff;
+      min-width: 60px;
+      max-width: 60px;
+      border-right: 1px solid #ddd;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 1rem;
+    }
+    .sidebar a {
+      display: block;
+      margin: 1rem 0;
+      color: #888;
+      text-decoration: none;
+      text-align: center;
+      font-size: 1.4rem; /* Placeholder for icon size */
+    }
+    .main-content {
+      margin-left: 60px; /* Same as sidebar width */
+      padding: 2rem;
+    }
+    .scan-box {
+      background-color: #e9e1f0;
+      border-radius: 8px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6f5499;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+    .scan-box:hover {
+      background-color: #dbd2e7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Replace these placeholders with actual icons/links -->
+    <a href="#" title="Profile">&#128100;</a>
+    <a href="#" title="Home">&#8962;</a>
+    <a href="#" title="Categories">&#128196;</a>
+    <!-- Add more icons as needed -->
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h2 class="mb-4">New Expense</h2>
+    
+    <form method="POST" action="{{ url_for('create_expense') }}" enctype="multipart/form-data">
+      <div class="row mb-3">
+        <!-- Total -->
+        <div class="col-md-6 mb-3">
+          <label for="total" class="form-label">Total</label>
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="total"
+            name="total"
+            placeholder="Enter amount"
+            required
+          >
+        </div>
+        <!-- Date -->
+        <div class="col-md-6 mb-3">
+          <label for="date" class="form-label">Date</label>
+          <input
+            type="date"
+            class="form-control"
+            id="date"
+            name="date"
+            required
+          >
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="mb-3">
+        <label for="category" class="form-label">Category</label>
+        <select class="form-select" id="category" name="category" required>
+          <option value="" disabled selected>Select Category</option>
+          {% for cat in categories %}
+            <option value="{{ cat.category_id }}">{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea
+          class="form-control"
+          id="description"
+          name="description"
+          rows="3"
+          placeholder="Short note about this expense"
+        ></textarea>
+      </div>
+
+      <!-- Scan (Receipt Image) -->
+      <div class="mb-4">
+        <label class="form-label">Scan / Slip Image</label>
+        <div class="scan-box">
+          <span>+</span>
+          <!-- If you want to let users upload a file, add an <input type='file'> here (hidden or visible). -->
+          <!-- Example:
+          <input type="file" name="slip_image" accept="image/*" style="display: none;" id="slipInput">
+          -->
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="{{ url_for('expenses') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+
+  <!-- Bootstrap JS (Optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

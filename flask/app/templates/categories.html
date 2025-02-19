@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Categories</title>
+    <!-- Include your CSS (e.g., Bootstrap) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+
+<body>
+    <div class="container mt-4">
+        <h1>Categories</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Monthly Limit</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr>
+                    <td>{{ category.category_id }}</td>
+                    <td>{{ category.name }}</td>
+                    <td>{{ category.description }}</td>
+                    <td>{{ category.monthly_limit }}</td>
+                    <td>{{ category.created_at.strftime('%Y-%m-%d %H:%M:%S') if category.created_at else '' }}</td>
+                    <td>
+                       <!-- <a href="{{ url_for('edit_category', id=category.category_id) }}"
+                            class="btn btn-primary btn-sm">Edit</a>
+                        <a href="{{ url_for('delete_category', id=category.category_id) }}"
+                            class="btn btn-danger btn-sm">Delete</a>-->
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
