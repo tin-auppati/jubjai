@@ -38,9 +38,9 @@ def seed_db():
         name="Food",
         description="Expenses on food and dining",
         monthly_limit=500.00,
+        user_id=user.id,
     )
     # Set the foreign key (category.user_id) to the created user's id
-    category.user_id = user.id
     db.session.add(category)
     db.session.commit()  # Commit to get category.category_id generated
 
@@ -50,10 +50,10 @@ def seed_db():
         entry_method="manual",  # Only "manual" or "slip" allowed
         description="Lunch at a restaurant",
         expense_date=datetime.now(),
+        user_id=user.id,
+        category_id=category.category_id
     )
     # Set foreign keys for expense
-    expense.user_id = user.id
-    expense.category_id = category.category_id
     db.session.add(expense)
     db.session.commit()
 

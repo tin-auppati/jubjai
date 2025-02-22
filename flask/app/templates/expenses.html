@@ -1,146 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>New Expense</title>
   <!-- Bootstrap CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-  >
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/new_expense.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/new_expense.css') }}">
+  <!-- Include Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.1/dist/tesseract.min.js"></script>
   <style>
-    /* Example styling to mimic the soft purple look */
-    body {
-      background-color: #f7f4fa; /* Light purple background */
-    }
-    .sidebar {
-      background-color: #fff;
-      min-width: 60px;
-      max-width: 60px;
-      border-right: 1px solid #ddd;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 1rem;
-    }
-    .sidebar a {
-      display: block;
-      margin: 1rem 0;
-      color: #888;
-      text-decoration: none;
-      text-align: center;
-      font-size: 1.4rem; /* Placeholder for icon size */
-    }
-    .main-content {
-      margin-left: 60px; /* Same as sidebar width */
-      padding: 2rem;
-    }
-    .scan-box {
-      background-color: #e9e1f0;
-      border-radius: 8px;
-      height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #6f5499;
-      font-size: 2rem;
-      cursor: pointer;
-    }
-    .scan-box:hover {
-      background-color: #dbd2e7;
-    }
+    /* Your styles here */
   </style>
 </head>
-<body>
 
+<body>
   <!-- Sidebar -->
   <div class="sidebar">
-    <!-- Replace these placeholders with actual icons/links -->
     <a href="#" title="Profile">&#128100;</a>
     <a href="#" title="Home">&#8962;</a>
     <a href="#" title="Categories">&#128196;</a>
-    <!-- Add more icons as needed -->
   </div>
-
   <!-- Main Content -->
   <div class="main-content">
     <h2 class="mb-4">New Expense</h2>
-    
     <form method="POST" action="{{ url_for('create_expense') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <div class="row mb-3">
         <!-- Total -->
         <div class="col-md-6 mb-3">
           <label for="total" class="form-label">Total</label>
-          <input
-            type="number"
-            step="0.01"
-            class="form-control"
-            id="total"
-            name="total"
-            placeholder="Enter amount"
-            required
-          >
+          <input type="number" step="0.01" class="form-control" id="total" name="total" placeholder="Enter amount"
+            required>
         </div>
         <!-- Date -->
         <div class="col-md-6 mb-3">
           <label for="date" class="form-label">Date</label>
-          <input
-            type="date"
-            class="form-control"
-            id="date"
-            name="date"
-            required
-          >
+          <input type="date" class="form-control" id="date" name="date" value="{{ current_date }}" required>
         </div>
       </div>
-
       <!-- Category -->
       <div class="mb-3">
         <label for="category" class="form-label">Category</label>
         <select class="form-select" id="category" name="category" required>
           <option value="" disabled selected>Select Category</option>
           {% for cat in categories %}
-            <option value="{{ cat.category_id }}">{{ cat.name }}</option>
+          <option value="{{ cat.category_id }}">{{ cat.name }}</option>
           {% endfor %}
+          <option value="create">Create New Category...</option>
         </select>
       </div>
-
       <!-- Description -->
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
-        <textarea
-          class="form-control"
-          id="description"
-          name="description"
-          rows="3"
-          placeholder="Short note about this expense"
-        ></textarea>
+        <textarea class="form-control" id="description" name="description" rows="3"
+          placeholder="Short note about this expense"></textarea>
       </div>
-
-      <!-- Scan (Receipt Image) -->
-      <div class="mb-4">
+      <!-- Entry Method Dropdown -->
+      <div class="mb-3">
+        <label for="entry_method" class="form-label">Entry Method</label>
+        <select class="form-select" id="entry_method" name="entry_method" required>
+          <option value="manual" selected>Manual</option>
+          <option value="slip">Slip</option>
+        </select>
+      </div>
+      <!-- Scan Container with Preview and OCR Result -->
+      <div class="mb-4" id="scanContainer" style="display:none;">
         <label class="form-label">Scan / Slip Image</label>
-        <div class="scan-box">
-          <span>+</span>
-          <!-- If you want to let users upload a file, add an <input type='file'> here (hidden or visible). -->
-          <!-- Example:
-          <input type="file" name="slip_image" accept="image/*" style="display: none;" id="slipInput">
-          -->
+        <div class="scan-box" id="scanBox">
+          <span id="plusSign">+</span>
+          <input type="file" name="slip_image" accept="image/*,application/pdf">
         </div>
+        <div id="ocrResult"></div>
       </div>
-
       <!-- Buttons -->
       <button type="submit" class="btn btn-primary">Save</button>
-      <a href="{{ url_for('expenses') }}" class="btn btn-secondary">Cancel</a>
+      <a href="{{ url_for('create_expense') }}" class="btn btn-secondary">Cancel</a>
     </form>
   </div>
-
-  <!-- Bootstrap JS (Optional) -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const entryMethodSelect = document.getElementById("entry_method");
+      const scanContainer = document.getElementById("scanContainer");
+      const scanBox = document.getElementById("scanBox");
+      const plusSign = document.getElementById("plusSign");
+      const totalInput = document.getElementById("total");
+      const slipInput = document.querySelector('input[name="slip_image"]');
+      const ocrResultDiv = document.getElementById("ocrResult");
+      const categorySelect = document.getElementById("category");
+
+      // Default setup: "Manual" is selected
+      if (entryMethodSelect.value === "manual") {
+        scanContainer.style.display = "none";
+        totalInput.readOnly = false;
+        totalInput.style.backgroundColor = "";
+        slipInput.required = false;
+      }
+
+      // Redirect to create category if "Create New Category" is selected
+      categorySelect.addEventListener("change", function () {
+        if (this.value === "create") {
+          window.location.href = "{{ url_for('categories') }}";
+        }
+      });
+
+      entryMethodSelect.addEventListener("change", function () {
+        if (entryMethodSelect.value === "slip") {
+          scanContainer.style.display = "block";
+          totalInput.readOnly = true;
+          totalInput.style.backgroundColor = "#e9ecef"; // gray background
+          totalInput.value = ""; // clear value
+          slipInput.required = true;
+        } else {
+          scanContainer.style.display = "none";
+          totalInput.readOnly = false;
+          totalInput.style.backgroundColor = "";
+          slipInput.required = false;
+          ocrResultDiv.innerHTML = "";
+          if (!document.getElementById("plusSign")) {
+            const span = document.createElement("span");
+            span.id = "plusSign";
+            span.textContent = "+";
+            scanBox.insertBefore(span, slipInput);
+          }
+          Array.from(scanBox.children).forEach(child => {
+            if (child.id !== "plusSign" && child.tagName !== "INPUT") {
+              child.remove();
+            }
+          });
+        }
+      });
+
+      slipInput.addEventListener("change", function (event) {
+        // Remove the plus sign if it exists.
+        const plus = document.getElementById("plusSign");
+        if (plus) { plus.remove(); }
+        // Clear previous preview elements and OCR result.
+        Array.from(scanBox.children).forEach(child => {
+          if (child.tagName !== "INPUT") { child.remove(); }
+        });
+        ocrResultDiv.innerHTML = "";
+
+        const file = event.target.files[0];
+        if (file) {
+          scanBox.style.height = "auto";
+          if (file.type.startsWith("image/")) {
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.style.width = "100%";
+            img.style.height = "auto";
+            img.onload = function () {
+              URL.revokeObjectURL(this.src);
+            };
+            scanBox.appendChild(img);
+
+            // OCR with Tesseract.js (using both English and Thai)
+            Tesseract.recognize(
+              file,
+              'eng+tha',
+              { langPath: '/tessdata', logger: m => console.log(m) }
+            ).then(({ data: { text } }) => {
+              console.log("OCR result:", text);
+              ocrResultDiv.textContent = "OCR Raw Text: " + text;
+              // Regex to extract first number (supports Arabic and Thai digits)
+              const regex = /([0-9\u0E50-\u0E59]+(?:\.[0-9\u0E50-\u0E59]+)?)/;
+              const match = text.match(regex);
+              if (match) {
+                // Convert Thai digits to Arabic digits
+                function thaiToArabic(str) {
+                  return str.replace(/[\u0E50-\u0E59]/g, function (ch) {
+                    return ch.charCodeAt(0) - 0x0E50;
+                  });
+                }
+                let value = thaiToArabic(match[0]);
+                totalInput.value = value;
+                console.log("Extracted amount:", value);
+              } else {
+                totalInput.value = "";
+                console.log("No numeric value found in OCR result.");
+              }
+            }).catch(err => {
+              console.error("OCR error:", err);
+              totalInput.value = "";
+            });
+          } else if (file.type === "application/pdf") {
+            const p = document.createElement("p");
+            p.textContent = "PDF file selected: " + file.name;
+            p.style.fontSize = "1rem";
+            p.style.textAlign = "center";
+            scanBox.appendChild(p);
+            totalInput.value = "";
+          }
+        }
+      });
+    });
+  </script>
 </body>
+
 </html>

@@ -18,9 +18,8 @@ services:
           memory: 256M
   db:
     image: postgres:13-alpine
-    command: postgres -c listen_addresses='*' -p 5433
     ports:
-      - "5433:5433"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:

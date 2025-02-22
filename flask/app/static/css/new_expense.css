@@ -1,49 +1,57 @@
-/* Example styling to mimic the soft purple look */
-body {
-  background-color: #f7f4fa; /* Light purple background */
-}
-
 .sidebar {
-  background-color: #fff;
-  min-width: 60px;
-  max-width: 60px;
-  border-right: 1px solid #ddd;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 1rem;
-}
-
-.sidebar a {
-  display: block;
-  margin: 1rem 0;
-  color: #888;
-  text-decoration: none;
-  text-align: center;
-  font-size: 1.4rem; /* Placeholder for icon size */
-}
-
-.main-content {
-  margin-left: 60px; /* Same as sidebar width */
-  padding: 2rem;
-}
-
-.scan-box {
-  background-color: #e9e1f0;
-  border-radius: 8px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6f5499;
-  font-size: 2rem;
-  cursor: pointer;
-}
-
-.scan-box:hover {
-  background-color: #dbd2e7;
+      background-color: #fff;
+      min-width: 60px;
+      max-width: 60px;
+      border-right: 1px solid #ddd;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 1rem;
+    }
+    .sidebar a {
+      display: block;
+      margin: 1rem 0;
+      color: #888;
+      text-decoration: none;
+      text-align: center;
+      font-size: 1.4rem;
+    }
+    .main-content {
+      margin-left: 60px; /* Same as sidebar width */
+      padding: 2rem;
+    }
+    .scan-box {
+      background-color: #e9e1f0;
+      border-radius: 8px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6f5499;
+      font-size: 2rem;
+      cursor: pointer;
+      position: relative;
+    }
+    .scan-box input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      height: 100%;
+      width: 100%;
+      cursor: pointer;
+    }
+    .scan-box img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    #ocrResult {
+  margin-top: 10px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f8f8f8;
+  padding: 5px;
+  border-radius: 4px;
 }

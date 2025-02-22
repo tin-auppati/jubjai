@@ -6,16 +6,19 @@ from flask import (jsonify, render_template,
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from sqlalchemy.sql import text
-
+from werkzeug.utils import secure_filename
 from flask_login import login_user, login_required, logout_user, current_user
 from app import app
 from app import db
 from app import login_manager
 from app import oauth
 from datetime import datetime
+from decimal import Decimal
+import os
 
 from app.models.contact import Contact
 from app.models.jubjai import User,Category,Expense
+from flask import send_from_directory
 
 
 @app.route('/')
@@ -26,6 +29,9 @@ def home():
 def crash():
     return 1/0
 
+@app.route('/verify-tessdata')
+def verify_tessdata():
+    return app.send_static_file('tessdata/tha.traineddata')
 
 
 @app.route('/db')
@@ -320,39 +326,90 @@ def google_auth():
     login_user(user)
     return redirect('/lab10')
 
-@app.route('/categories')
+@app.route('/categories', methods=['GET', 'POST'])
 def categories():
-    all_categories = Category.query.all()
-    return render_template('categories.html', categories=all_categories)
+    if request.method == 'POST':
+        # Get form values
+        name = request.form.get('name')
+        description = request.form.get('description')
+        monthly_limit = request.form.get('monthly_limit')
 
-@app.route('/expenses')
-def expenses():
-    all_expenses = Expense.query.all()
-    return render_template('expenses.html', expenses=all_expenses)
+        # Convert monthly_limit to Decimal if provided
+        try:
+            monthly_limit = Decimal(monthly_limit) if monthly_limit else None
+        except Exception as e:
+            monthly_limit = None
 
-@app.route('/expense/new', methods=['GET', 'POST'])
+        # Create a new Category; note that name is required
+        new_category = Category(
+            name=name,
+            user_id=current_user.id,  # Assuming the user is logged in
+            description=description,
+            monthly_limit=monthly_limit
+        )
+        db.session.add(new_category)
+        db.session.commit()
+        # Redirect back to the expense creation page (or wherever you prefer)
+        return redirect(url_for('create_expense'))
+    else:
+        # Render the category creation form
+        return render_template('categories.html')
+
+
+@login_required
+@app.route('/expenses', methods=['GET', 'POST'])
 def create_expense():
     if request.method == 'POST':
+        # Get form values
         total = request.form.get('total')
         date_str = request.form.get('date')
         category_id = request.form.get('category')
         description = request.form.get('description')
-        # If you have a file input, handle file saving here.
+        entry_method = request.form.get('entry_method')  # "manual" or "slip"
 
-        # Convert date string to date object if provided
-        expense_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else None
+        # Convert date string to date
+        expense_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
 
+        # Convert total to Decimal
+        try:
+            amount = Decimal(total)
+        except Exception as e:
+            amount = Decimal('0.00')
+
+        # Initialize slip_image_url as None
+        slip_image_url = None
+        if entry_method == 'slip':
+            # Handle the file upload if slip is selected
+            if 'slip_image' in request.files:
+                slip_file = request.files['slip_image']
+                if slip_file and slip_file.filename:
+                    # Sanitize and build a filename
+                    filename = secure_filename(slip_file.filename)
+                    # Use an upload folder defined in your config, or set a default folder
+                    upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+                    if not os.path.exists(upload_folder):
+                        os.makedirs(upload_folder)
+                    file_path = os.path.join(upload_folder, filename)
+                    slip_file.save(file_path)
+                    # Store the file path or a URL for later retrieval
+                    slip_image_url = file_path
+
+        # Create the expense instance
         new_expense = Expense(
-            amount=total,
-            expense_date=expense_date,
+            amount=amount,
+            entry_method=entry_method,
+            user_id=current_user.id,
             category_id=category_id,
             description=description,
-            # Add other fields (user_id, entry_method, slip_image_url, etc.) as needed
+            expense_date=expense_date,
+            slip_image_url=slip_image_url
         )
+
         db.session.add(new_expense)
         db.session.commit()
-        return redirect(url_for('expenses'))  # or wherever you want to go after saving
+        return redirect(url_for('create_expense'))
     else:
-        # GET request -> Show the new expense form
+        # For GET, pass in necessary context values
         categories = Category.query.all()
-        return render_template('new_expense.html', categories=categories)
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        return render_template('expenses.html', categories=categories, current_date=current_date)
