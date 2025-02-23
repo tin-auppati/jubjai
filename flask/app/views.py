@@ -2,7 +2,7 @@ import json
 import secrets
 import string
 from flask import (jsonify, render_template,
-                  request, url_for, flash, redirect)
+                  request, url_for, flash, redirect, current_app)
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from sqlalchemy.sql import text
@@ -327,38 +327,70 @@ def google_auth():
     return redirect('/lab10')
 
 @app.route('/categories', methods=['GET', 'POST'])
+@login_required
 def categories():
     if request.method == 'POST':
-        # Get form values
+        # Get form data
         name = request.form.get('name')
         description = request.form.get('description')
         monthly_limit = request.form.get('monthly_limit')
-
+        icon_url = request.form.get('icon_url')
         # Convert monthly_limit to Decimal if provided
+        from decimal import Decimal
         try:
             monthly_limit = Decimal(monthly_limit) if monthly_limit else None
         except Exception as e:
             monthly_limit = None
 
-        # Create a new Category; note that name is required
         new_category = Category(
             name=name,
-            user_id=current_user.id,  # Assuming the user is logged in
+            user_id=current_user.id,  # Make sure the user is logged in
             description=description,
-            monthly_limit=monthly_limit
+            monthly_limit=monthly_limit,
+            icon_url=icon_url
         )
         db.session.add(new_category)
         db.session.commit()
-        # Redirect back to the expense creation page (or wherever you prefer)
-        return redirect(url_for('create_expense'))
+        return redirect(url_for('create_expenses'))
     else:
-        # Render the category creation form
-        return render_template('categories.html')
-
+        # Create a list of icons (30 icons, for example)
+        icon_list = [
+            {"name": "Food", "url": "https://cdn-icons-png.flaticon.com/512/1046/1046857.png"},
+            {"name": "Travel", "url": "https://cdn-icons-png.flaticon.com/512/2922/2922510.png"},
+            {"name": "Shopping", "url": "https://cdn-icons-png.flaticon.com/512/1041/1041914.png"},
+            {"name": "Health", "url": "https://cdn-icons-png.flaticon.com/512/2922/2922561.png"},
+            {"name": "Entertainment", "url": "https://cdn-icons-png.flaticon.com/512/733/733585.png"},
+            {"name": "Bills", "url": "https://cdn-icons-png.flaticon.com/512/1256/1256650.png"},
+            {"name": "Education", "url": "https://cdn-icons-png.flaticon.com/512/3143/3143648.png"},
+            {"name": "Groceries", "url": "https://cdn-icons-png.flaticon.com/512/1046/1046857.png"},
+            {"name": "Utilities", "url": "https://cdn-icons-png.flaticon.com/512/1087/1087929.png"},
+            {"name": "Rent", "url": "https://cdn-icons-png.flaticon.com/512/2933/2933606.png"},
+            {"name": "Coffee", "url": "https://cdn-icons-png.flaticon.com/512/3022/3022634.png"},
+            {"name": "Gifts", "url": "https://cdn-icons-png.flaticon.com/512/1055/1055672.png"},
+            {"name": "Pets", "url": "https://cdn-icons-png.flaticon.com/512/616/616490.png"},
+            {"name": "Transport", "url": "https://cdn-icons-png.flaticon.com/512/149/149060.png"},
+            {"name": "Insurance", "url": "https://cdn-icons-png.flaticon.com/512/2972/2972185.png"},
+            {"name": "Subscriptions", "url": "https://cdn-icons-png.flaticon.com/512/1055/1055687.png"},
+            {"name": "Internet", "url": "https://cdn-icons-png.flaticon.com/512/1006/1006771.png"},
+            {"name": "Mobile", "url": "https://cdn-icons-png.flaticon.com/512/1087/1087926.png"},
+            {"name": "Sports", "url": "https://cdn-icons-png.flaticon.com/512/1040/1040232.png"},
+            {"name": "Books", "url": "https://cdn-icons-png.flaticon.com/512/2991/2991156.png"},
+            {"name": "Office", "url": "https://cdn-icons-png.flaticon.com/512/3106/3106874.png"},
+            {"name": "Car", "url": "https://cdn-icons-png.flaticon.com/512/743/743007.png"},
+            {"name": "Taxi", "url": "https://cdn-icons-png.flaticon.com/512/744/744922.png"},
+            {"name": "Parking", "url": "https://cdn-icons-png.flaticon.com/512/684/684908.png"},
+            {"name": "Maintenance", "url": "https://cdn-icons-png.flaticon.com/512/1995/1995574.png"},
+            {"name": "Entertainment 2", "url": "https://cdn-icons-png.flaticon.com/512/3135/3135755.png"},
+            {"name": "Charity", "url": "https://cdn-icons-png.flaticon.com/512/2917/2917995.png"},
+            {"name": "Loan", "url": "https://cdn-icons-png.flaticon.com/512/2838/2838921.png"},
+            {"name": "Savings", "url": "https://cdn-icons-png.flaticon.com/512/263/263142.png"},
+            {"name": "Miscellaneous", "url": "https://cdn-icons-png.flaticon.com/512/2917/2917997.png"}
+        ]
+        return render_template('categories.html', icon_list=icon_list)
 
 @login_required
 @app.route('/expenses', methods=['GET', 'POST'])
-def create_expense():
+def create_expenses():
     if request.method == 'POST':
         # Get form values
         total = request.form.get('total')
@@ -407,9 +439,47 @@ def create_expense():
 
         db.session.add(new_expense)
         db.session.commit()
-        return redirect(url_for('create_expense'))
+        return redirect(url_for('create_expenses'))
     else:
         # For GET, pass in necessary context values
         categories = Category.query.all()
         current_date = datetime.now().strftime('%Y-%m-%d')
         return render_template('expenses.html', categories=categories, current_date=current_date)
+
+@login_required
+@app.route('/all_expenses')
+def all_expenses():
+    # Example: retrieve expense data from DB
+    expenses = Expense.query.all()
+    category = [
+    (expense, Category.query.get(expense.category_id))
+    for expense in expenses
+    ]
+    return render_template('all_expenses.html', expenses=expenses, category=category)
+
+
+@app.route('/upload_icon', methods=['POST'])
+def upload_icon():
+    if 'file' not in request.files:
+        return jsonify(success=False, message="No file part in the request"), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify(success=False, message="No selected file"), 400
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        # Set the upload folder relative to your application's root
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+        # Generate a URL that points to the saved file (this will be much shorter than a data URL)
+        file_url = url_for('static', filename='uploads/' + filename, _external=True)
+        return jsonify(success=True, file_url=file_url)
+    else:
+        return jsonify(success=False, message="File type not allowed"), 400
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

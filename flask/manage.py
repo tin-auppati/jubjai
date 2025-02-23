@@ -9,6 +9,7 @@ from datetime import datetime
 
 cli = FlaskGroup(app)
 
+
 @cli.command("create_db")
 def create_db():
     db.reflect()
@@ -33,12 +34,14 @@ def seed_db():
     db.session.add(user)
     db.session.commit()
 
+    
     # Create a sample category for the user
     category = Category(
         name="Food",
-        description="Expenses on food and dining",
-        monthly_limit=500.00,
         user_id=user.id,
+        icon_url="https://cdn-icons-png.flaticon.com/512/1046/1046857.png",
+        description="Expenses on food and dining",
+        monthly_limit=500.00
     )
     # Set the foreign key (category.user_id) to the created user's id
     db.session.add(category)

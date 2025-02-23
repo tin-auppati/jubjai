@@ -4,8 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Create New Category</title>
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .icon-option {
+            cursor: pointer;
+            margin-bottom: 10px;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            width: 100%;
+            max-height: 100px;
+            /* Limits the icon's height */
+            object-fit: contain;
+            /* Maintains the image's aspect ratio */
+        }
+
+        .icon-option:hover {
+            border-color: #0d6efd;
+        }
+
+        /* Styling for the "Import New Icon" card */
+        .import-icon {
+            cursor: pointer;
+            margin-bottom: 10px;
+            border: 2px dashed #0d6efd;
+            border-radius: 4px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .import-icon span {
+            font-size: 2rem;
+            color: #0d6efd;
+        }
+    </style>
 </head>
 
 <body>
@@ -36,14 +70,222 @@
                     placeholder="Enter monthly limit (optional)">
             </div>
 
+            <!-- Icon Selection -->
+            <div class="mb-3">
+                <label class="form-label">Icon</label>
+                <div class="d-flex align-items-center">
+                    <!-- Preview of selected icon -->
+                    <img id="selectedIconPreview" src="https://cdn-icons-png.flaticon.com/512/1046/1046857.png"
+                        alt="Default Icon" style="width:40px;height:40px; object-fit: contain; margin-right:10px;">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#iconModal">
+                        Select Icon
+                    </button>
+                </div>
+                <!-- Hidden input to store selected icon URL -->
+                <input type="hidden" name="icon_url" id="icon_url"
+                    value="https://cdn-icons-png.flaticon.com/512/1046/1046857.png">
+            </div>
+
             <!-- Form Buttons -->
             <button type="submit" class="btn btn-primary">Create Category</button>
-            <a href="{{ url_for('create_expense') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ url_for('create_expenses') }}" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Icon Selection Modal (Preset Icons) -->
+    <div class="modal fade" id="iconModal" tabindex="-1" aria-labelledby="iconModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="iconModalLabel">Select an Icon</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Loop through provided icon_list -->
+                        {% for icon in icon_list %}
+                        <div class="col-3 mb-3">
+                            <img src="{{ icon.url }}" class="img-fluid icon-option" alt="{{ icon.name }}"
+                                data-icon-url="{{ icon.url }}">
+                        </div>
+                        {% endfor %}
+                        <!-- Last option: Import new icon -->
+                        <div class="col-3 mb-3">
+                            <div class="import-icon" id="importNewIcon">
+                                <span>+</span>
+                            </div>
+                            <p class="text-center">Import New Icon</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import New Icon Modal (Choose URL or Upload) -->
+    <div class="modal fade" id="importIconModal" tabindex="-1" aria-labelledby="importIconModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importIconModalLabel">Import New Icon</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Choose import method -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Import Method:</label>
+                        <div>
+                            <input type="radio" name="importMethod" value="url" id="importUrl" checked>
+                            <label for="importUrl">Import via URL</label>
+                        </div>
+                        <div>
+                            <input type="radio" name="importMethod" value="upload" id="importUpload">
+                            <label for="importUpload">Upload File</label>
+                        </div>
+                    </div>
+                    <!-- URL Import -->
+                    <div id="importUrlContainer" class="mb-3">
+                        <label for="iconUrlInput" class="form-label">Icon URL (JPG/PNG):</label>
+                        <input type="url" class="form-control" id="iconUrlInput" placeholder="Enter image URL">
+                    </div>
+                    <!-- File Upload Import -->
+                    <div id="importUploadContainer" class="mb-3" style="display:none;">
+                        <label for="iconFileInput" class="form-label">Upload Icon (JPG/PNG):</label>
+                        <input type="file" class="form-control" id="iconFileInput" accept="image/png, image/jpeg">
+                    </div>
+                    <!-- Preview -->
+                    <div class="mb-3">
+                        <label class="form-label">Preview:</label>
+                        <img id="importIconPreview" src="" alt="Icon Preview" style="width:40px;height:40px;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmImportIcon">Import Icon</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Icon Selection Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // For preset icon selection
+            document.querySelectorAll(".icon-option").forEach(function (img) {
+                img.addEventListener("click", function () {
+                    var iconUrl = this.getAttribute("data-icon-url");
+                    document.getElementById("icon_url").value = iconUrl;
+                    document.getElementById("selectedIconPreview").src = iconUrl;
+                    // Hide the icon modal
+                    var iconModalEl = document.getElementById("iconModal");
+                    var modalInstance = bootstrap.Modal.getInstance(iconModalEl);
+                    modalInstance.hide();
+                });
+            });
+
+            // When "Import New Icon" card is clicked, open the Import New Icon Modal
+            document.getElementById("importNewIcon").addEventListener("click", function () {
+                // Hide the preset icon modal
+                var iconModalEl = document.getElementById("iconModal");
+                var iconModalInstance = bootstrap.Modal.getInstance(iconModalEl);
+                if (!iconModalInstance) {
+                    iconModalInstance = new bootstrap.Modal(iconModalEl);
+                }
+                iconModalInstance.hide();
+
+                // Show the import icon modal
+                var importModalEl = document.getElementById("importIconModal");
+                var importModalInstance = bootstrap.Modal.getInstance(importModalEl);
+                if (!importModalInstance) {
+                    importModalInstance = new bootstrap.Modal(importModalEl);
+                }
+                importModalInstance.show();
+            });
+
+            // Toggle between URL and Upload methods
+            document.getElementById("importUrl").addEventListener("change", function () {
+                document.getElementById("importUrlContainer").style.display = "block";
+                document.getElementById("importUploadContainer").style.display = "none";
+            });
+            document.getElementById("importUpload").addEventListener("change", function () {
+                document.getElementById("importUrlContainer").style.display = "none";
+                document.getElementById("importUploadContainer").style.display = "block";
+            });
+
+            // Update preview when URL is entered
+            document.getElementById("iconUrlInput").addEventListener("input", function () {
+                var url = this.value;
+                document.getElementById("importIconPreview").src = url;
+            });
+
+            // Update preview when file is selected using FileReader
+            document.getElementById("iconFileInput").addEventListener("change", function () {
+                var file = this.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        document.getElementById("importIconPreview").src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Confirm import icon
+            document.getElementById("confirmImportIcon").addEventListener("click", function () {
+                var selectedMethod = document.querySelector('input[name="importMethod"]:checked').value;
+                if (selectedMethod === "url") {
+                    var newIconUrl = document.getElementById("iconUrlInput").value;
+                    // Validate URL for JPG/PNG
+                    if (!/\.(jpg|jpeg|png)$/i.test(newIconUrl)) {
+                        alert("Please enter a valid URL ending with .jpg, .jpeg, or .png.");
+                        return;
+                    }
+                    // Update the main form with the URL
+                    document.getElementById("icon_url").value = newIconUrl;
+                    document.getElementById("selectedIconPreview").src = newIconUrl;
+                    var importModalEl = document.getElementById("importIconModal");
+                    var importModalInstance = bootstrap.Modal.getInstance(importModalEl);
+                    importModalInstance.hide();
+                } else { // Upload method
+                    var fileInput = document.getElementById("iconFileInput");
+                    if (fileInput.files.length == 0) {
+                        alert("Please select an image file.");
+                        return;
+                    }
+                    var file = fileInput.files[0];
+                    var formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("csrf_token", "{{ csrf_token() }}");
+                    fetch("{{ url_for('upload_icon') }}", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                var newIconUrl = data.file_url;
+                                // Update main form with the new (short) URL
+                                document.getElementById("icon_url").value = newIconUrl;
+                                document.getElementById("selectedIconPreview").src = newIconUrl;
+                                var importModalEl = document.getElementById("importIconModal");
+                                var importModalInstance = bootstrap.Modal.getInstance(importModalEl);
+                                importModalInstance.hide();
+                            } else {
+                                alert("Error uploading icon: " + data.message);
+                            }
+                        })
+                        .catch(err => console.error("Error uploading icon:", err));
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
