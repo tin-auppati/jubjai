@@ -451,11 +451,11 @@ def create_expenses():
 def all_expenses():
     # Example: retrieve expense data from DB
     expenses = Expense.query.all()
-    category = [
-    (expense, Category.query.get(expense.category_id))
-    for expense in expenses
+    expense_categories = [
+        (expense, Category.query.get(expense.category_id))
+        for expense in expenses
     ]
-    return render_template('all_expenses.html', expenses=expenses, category=category)
+    return render_template('all_expenses.html', expense_categories=expense_categories)
 
 
 @app.route('/upload_icon', methods=['POST'])

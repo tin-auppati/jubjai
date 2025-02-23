@@ -65,7 +65,7 @@ class Expense(db.Model, SerializerMixin):
     is_deleted = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.now)
     date_updated = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    
+        
     def __init__(self, amount, entry_method, user_id, category_id,slip_image_url=None, description=None, expense_date=None, date_created=None, date_updated=None, is_deleted=False):
         self.expense_date = expense_date
         self.amount = amount

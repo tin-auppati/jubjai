@@ -35,11 +35,12 @@
                 </tr>
             </thead>
             <tbody>
-                {% for expense in expenses %}
+                {% for expense, category in expense_categories %}
                 <tr>
+                    <td>{{ expense.amount }}</td>
                     <td>
                         <div class="category-cell">
-                            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046857.png" alt="Icon">
+                            <img src="{{ category.icon_url }}" alt="{{ category.name }} Icon">
                             <div>
                                 <strong>{{ category.name }}</strong>
                                 <div class="date-text">{{ expense.expense_date.strftime('%m/%d/%Y') }}</div>
@@ -48,6 +49,7 @@
                     </td>
                     <td>{{ expense.amount }}</td>
                     <td>{{ expense.description }}</td>
+                    <!-- other expense columns -->
                 </tr>
                 {% endfor %}
             </tbody>
