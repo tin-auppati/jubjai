@@ -72,6 +72,9 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# Ignore upload_icon folder
+flask/app/static/uploads/
+
 # Scrapy stuff:
 .scrapy
 
