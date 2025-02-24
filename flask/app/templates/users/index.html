@@ -1,27 +1,20 @@
 {% extends "users/base.html" %}
 {% block content %}
-<div class="welcome-text">
+<div class="welcome-message">
     <h1 class="title">
         Welcome To<br>
-        Jub<span class="pink-text">jai</span>
+        Jub<span class="pink-message">jai</span>
     </h1>
     <div class="buttons">
-        <a href="{{ url_for('users_login') }}" class="button custom-button">Login</a>
-        <a href="{{ url_for('users_signup') }}" class="button custom-button">Sign Up</a>
+        <a href="{{ url_for('users_login') }}" class="button custom-login">Login</a>
+        <a href="{{ url_for('users_signup') }}" class="button custom-signup">Sign Up</a>
     </div>
 </div>
 
 <style>
-    .welcome-text {
-        height: 1080px;
-        width: 1920px;       
-    }
-
-    body.welcome-page {
-        background-image: url('static/img/welcome.jpg');
-        background-size: cover;
-        background-position: top center;
-        background-repeat: no-repeat;
+    .welcome-message {
+        height: 100%;
+        width: 100%;       
     }
 
     .title {
@@ -33,22 +26,44 @@
         margin-top: 310px;
     }
 
-    .pink-text {
+    .pink-message {
         color: #f880c1;
     }
 
     .buttons {
         position: absolute;
+        width: 520px;
+        height: 48px;
+        margin-top: 550px;
         margin-left: 91px;
         gap: 20px;
-        margin-top: 550px;
     }
 
-    .custom-button {
+    .custom-login {
+        position: absolute;
         width: 192px;
         height: 48px;
         font-size: 20px;
         font-weight: 600;
+        text-align: center;
+        line-height: 48px;
+        text-decoration: none;
+        background-color: #fdd1ea;
+        color: #555454;
+        border-radius: 40px;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .custom-signup {
+        position: absolute;
+        width: 192px;
+        height: 48px;
+        margin-left: 237px;
+        font-size: 20px;
+        font-weight: 600;
+        text-align: center;
+        line-height: 48px;
+        text-decoration: none;
         background-color: #fdd1ea;
         color: #555454;
         border-radius: 40px;

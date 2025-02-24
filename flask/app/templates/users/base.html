@@ -5,14 +5,25 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome To Jubjai</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
+    <title>Jubjai</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         html,
         body {
-            height: 1080px;
-            width: 1920px;
-            background-color: #fbf6fc !important;
+            font-family: 'Montserrat', sans-serif;
+            height: 100%;
+            width: 100%;
+            margin: 0px;
+            background-color: #fbf6fc;
+        }
+
+        body.welcome-page {
+            background-image: url('static/img/welcome.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0px;
         }
 
         .head {
@@ -44,6 +55,7 @@
         .custom-button-top {
             background: none;
             border: none;
+            text-decoration: none;
             color: #555454;
             font-size: 20px;
             cursor: pointer;
@@ -56,21 +68,24 @@
     <div class="welcome">
         {% if request.endpoint != 'users_index' %}
         <div class="head">
+            {% if not current_user.is_authenticated %}
             <div class="left-text">
                 <span>Jub<span class="pink">jai</span></span>
             </div>
+            {% endif %}
+
             <div class="button-container">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('users_profile') }}" class="button custom-button-top">Profile</a>
-                    <a href="{{ url_for('create_expenses')}}" class="button custom-button-top">Expense</a>
-                    <a href="{{ url_for('users_logout') }}" class="button custom-button-top">Logout</a>
+                <a href="{{ url_for('users_profile') }}" class="button custom-button-top">Profile</a>
+                <a href="{{ url_for('create_expenses')}}" class="button custom-button-top">Expense</a>
+                <a href="{{ url_for('users_logout') }}" class="button custom-button-top">Logout</a>
                 {% else %}
-                    <a href="{{ url_for('users_login') }}" class="button custom-button-top">Login</a>
-                    <a href="{{ url_for('users_signup') }}" class="button custom-button-top">Sign Up</a>
+                <a href="{{ url_for('users_login') }}" class="button custom-button-top">Login</a>
+                <a href="{{ url_for('users_signup') }}" class="button custom-button-top">Sign Up</a>
                 {% endif %}
             </div>
         </div>
-    {% endif %}    
+        {% endif %}
         <div class="body">
             {% block content %}
             {% endblock %}
