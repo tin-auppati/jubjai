@@ -1,6 +1,6 @@
 {% extends "users/base.html" %}
 {% block content %}
-<div class="column is-4 is-offset-4">
+<div class="column">
     <h3 class="title">Login</h3>
     <div class="box">
         {% with messages = get_flashed_messages() %}
@@ -14,12 +14,14 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <div class="field">
                 <div class="control">
-                    <input class="input is-large" type="email" name="email" placeholder="Your Email" autofocus="">
+                    <label class="label-text-email">Email</label>
+                    <input class="input-email" type="email" name="email" placeholder="  Your Email" autofocus="">
                 </div>
             </div>
             <div class="field">
                 <div class="control">
-                    <input class="input is-large" type="password" name="password" placeholder="Your Password">
+                    <label class="label-text-password">Password</label>
+                    <input class="input-password" type="password" name="password" placeholder="  Your Password">
                 </div>
             </div>
             <div class="field">
@@ -28,8 +30,116 @@
                     Remember me
                 </label>
             </div>
-            <button class="button is-block is-info is-large is-fullwidth">Login</button>
+            <button class="button-box">Login</button>
         </form>
+        <br />
+
+        <div class="field">
+            <a href="{{ url_for('google') }}" class="button button-google">
+                <span class="icon">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo"
+                        style="height: 20px;">
+                </span>
+                <span>Signin with Google</span>
+            </a>
+        </div>
     </div>
 </div>
+
+<style>
+    .column {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0px;
+    }
+
+    .title {
+        font-size: 70px;
+        font-weight: 500;
+        color: #555454;
+        margin-top: 110px;
+    }
+
+    .box {
+        width: 506px;
+        height: 514px;
+        border-radius: 20px;
+        padding: 0px;
+        background-color: #fdd1ea;
+        margin-top: 27px;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    form {
+        width: 506px;
+        height: 359px;
+        margin-top: 44px;
+    }
+
+    .label-text-email {
+        font-size: 20px;
+        color: #555454;
+        margin-top: 44px;
+        margin-left: 43px;
+    }
+
+    .label-text-password {
+        font-size: 20px;
+        color: #555454;
+        margin-left: 43px;
+    }
+
+    .input-email {
+        width: 406px;
+        height: 49px;
+        margin-left: 50px;
+        margin-top: 24px;
+        margin-bottom: 28px;
+        padding: 0px;
+        border: 0px;
+        background-color: #fbf6fc;
+    }
+
+    .input-password {
+        width: 406px;
+        height: 49px;
+        margin-left: 50px;
+        margin-top: 24px;
+        margin-bottom: 10px;
+        padding: 0px;
+        border: 0px;
+        background-color: #fbf6fc;
+
+    }
+
+    .checkbox {
+        margin-left: 50px;
+        margin-bottom: 9px;
+    }
+
+    .button-box {
+        font-size: 20px;
+        color: #555454;
+        width: 192px;
+        height: 48px;
+        margin-left: 157px;
+        padding: 0px;
+        border: 0px;
+        background-color: #fbf6fc;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .button-google {
+        width: 362px;
+        height: 48px;
+        font-size: 20px;
+        margin-left: 72px;
+        padding: 0px;
+        border: 0px;
+        color: #555454;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+</style>
 {% endblock %}
