@@ -1,7 +1,14 @@
+html {
+  height: 100vh;
+  background-color: #fbf6fc;
+}
+body {
+  font-family: 'Montserrat', sans-serif;
+}
 .sidebar {
-      background-color: #fff;
-      min-width: 60px;
-      max-width: 60px;
+      background-color: #dddbf8;
+      min-width: 70px;
+      max-width: 70px;
       border-right: 1px solid #ddd;
       height: 100vh;
       position: fixed;
@@ -14,24 +21,29 @@
     }
     .sidebar a {
       display: block;
-      margin: 1rem 0;
-      color: #888;
+      margin: 20px 0;
+      color: #000000;
       text-decoration: none;
       text-align: center;
-      font-size: 1.4rem;
+      font-size: 1.7rem;
     }
     .main-content {
-      margin-left: 60px; /* Same as sidebar width */
+      margin-left: 100px;
+      margin-top: 30px;
+      margin-right: 30px;
       padding: 2rem;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
     }
     .scan-box {
-      background-color: #e9e1f0;
+      background-color: #dddbf8;
       border-radius: 8px;
       height: 200px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #6f5499;
+      color: #555454;
       font-size: 2rem;
       cursor: pointer;
       position: relative;
@@ -47,6 +59,13 @@
       max-width: 100%;
       max-height: 100%;
     }
+    .btn-custom {
+      width: 74px;
+      background-color: #dddbf8 !important;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      font-weight: 600 !important;
+    }
     #ocrResult {
   margin-top: 10px;
   font-size: 1rem;
@@ -55,6 +74,7 @@
   padding: 5px;
   border-radius: 4px;
 }
+ 
   .category-icon {
     width: 20px;
     height: 20px;
@@ -73,6 +93,7 @@
 }
 .form-label {
     margin-bottom: 0.5rem;
+    font-weight: 600;
     display: block;
 }
 
