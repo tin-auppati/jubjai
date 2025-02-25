@@ -1,0 +1,25 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+  }
+  .sidebar {
+        background-color: #dddbf8;
+        min-width: 70px;
+        max-width: 70px;
+        border-right: 1px solid #ddd;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 1rem;
+      }
+      .sidebar a {
+        display: block;
+        margin: 20px 0;
+        color: #000000;
+        text-decoration: none;
+        text-align: center;
+        font-size: 1.7rem;
+      }

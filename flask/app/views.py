@@ -126,7 +126,30 @@ def users_index():
 @app.route('/users/profile')
 @login_required
 def users_profile():
-    return render_template('users/profile.html')
+    # if not avatar_url use default image
+    profile_image = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default-avatar.png')
+    return render_template('users/profile.html', profile_image=profile_image)
+
+@app.route('/users/upload_profile', methods=['POST'])
+@login_required
+def upload_profile():
+    file = request.files['file']
+    if file:
+        filename = secure_filename(file.filename)
+        upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+        file_path = os.path.join(upload_folder, filename)
+        file.save(file_path)
+
+        # update avatar_url in db
+        current_user.avatar_url = url_for('static', filename=f'uploads/{filename}')
+        db.session.commit()
+
+        flash('Profile image updated!')
+        return redirect(url_for('users_profile'))
+    else:
+        flash('File type not allowed!')
+        return redirect(url_for('users_profile'))
+
 
 @login_manager.user_loader
 def load_user(user_id):
