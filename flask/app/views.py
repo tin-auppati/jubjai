@@ -15,6 +15,7 @@ from app import oauth
 from datetime import datetime
 from decimal import Decimal
 import os
+from sqlalchemy import func, extract
 
 from app.models.contact import Contact
 from app.models.jubjai import User,Category,Expense
@@ -358,7 +359,7 @@ def categories():
         monthly_limit = request.form.get('monthly_limit')
         icon_url = request.form.get('icon_url')
         # Convert monthly_limit to Decimal if provided
-        from decimal import Decimal
+        
         try:
             monthly_limit = Decimal(monthly_limit) if monthly_limit else None
         except Exception as e:
@@ -437,15 +438,12 @@ def create_expenses():
             if 'slip_image' in request.files:
                 slip_file = request.files['slip_image']
                 if slip_file and slip_file.filename:
-                    # Sanitize and build a filename
                     filename = secure_filename(slip_file.filename)
-                    # Use an upload folder defined in your config, or set a default folder
                     upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
                     if not os.path.exists(upload_folder):
                         os.makedirs(upload_folder)
                     file_path = os.path.join(upload_folder, filename)
                     slip_file.save(file_path)
-                    # Store the file path or a URL for later retrieval
                     slip_image_url = file_path
 
         # Create the expense instance
@@ -461,9 +459,27 @@ def create_expenses():
 
         db.session.add(new_expense)
         db.session.commit()
+
+        # --- New Code for Monthly Limit Alert ---
+        # Retrieve the category from the DB
+        category = Category.query.get(category_id)
+        if category and category.monthly_limit:
+            
+            # Sum up all expenses for this category for the same month & year as the expense_date
+            monthly_sum = db.session.query(
+                func.coalesce(func.sum(Expense.amount), 0)
+            ).filter(
+                Expense.category_id == category_id,
+                extract('year', Expense.expense_date) == expense_date.year,
+                extract('month', Expense.expense_date) == expense_date.month
+            ).scalar()
+
+            if monthly_sum > category.monthly_limit:
+                flash(f"Alert: You have exceeded the monthly limit for {category.name}.", "warning")
+        # -----------------------------------------
+
         return redirect(url_for('create_expenses'))
     else:
-        # For GET, pass in necessary context values
         categories = Category.query.all()
         current_date = datetime.now().strftime('%Y-%m-%d')
         return render_template('expenses.html', categories=categories, current_date=current_date)
@@ -505,3 +521,4 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
