@@ -1,79 +1,120 @@
 body {
-    background-color: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
-  /* Sidebar styling */
-  .sidebar {
-    background-color: #dddbf8;
-    min-width: 70px;
-    max-width: 70px;
-    border-right: 1px solid #ddd;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 1rem;
-  }
-  .sidebar a {
-    display: block;
-    margin: 20px 0;
-    color: #000000;
-    text-decoration: none;
-    text-align: center;
-    font-size: 1.7rem;
-  }
-  
-  /* Profile Container */
-  .profile-container {
-    text-align: center;
-    margin: auto;
-  }
-  
-  .profile-image {
-    width: 300px;
-    height: 300px;
-    border-radius: 50%;
-    background-color: #FFE0F9;
-    position: relative;
-    margin: 0 auto 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    background-size: cover;
-    background-position: center;
-  }
-  
-  .plus-icon {
-    font-size: 56px;
-    color: #777;
-  }
-  
-  .profile-image input[type="file"] {
-    opacity: 0;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-  }
-  
-  /* username and email*/
-  h1 {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 40px;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  p {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 24px;
-    color: #666;
-  }
+  background-color: #fbf6fc !important;
+}
+
+/* Sidebar styling */
+.sidebar {
+  padding-top: 1rem;
+  position: absolute;
+  width: 70px;
+  height: 100vh;
+  background: #dddbf8;
+  overflow: hidden;
+  transition: 0.5s;
+}
+
+.sidebar:hover {
+  width: 250px;
+}
+
+.sidebar ul {
+  position: relative;
+  padding: 0;
+  height: 100vh;
+}
+
+.sidebar ul li {
+  list-style: none;
+}
+
+.sidebar ul li {
+  background: #dddbf8;
+}
+
+.sidebar ul li a {
+  position: relative;
+  display: flex;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.sidebar ul li a .icon {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 70px;
+  height: 70px;
+  font-size: 1.5rem;
+  color: #333
+}
+
+.sidebar ul li a .text {
+  position: relative;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  font-size: 1em;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bottom {
+  position: absolute;
+  bottom: 1rem;
+  width: 100%;
+}
+
+/* Profile Container */
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: auto; 
+}
+
+
+.profile-image {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background-color: #FFE0F9;
+  position: relative;
+  margin: 0 auto 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background-size: cover;
+  background-position: center;
+}
+
+.plus-icon {
+  font-size: 56px;
+  color: #777;
+}
+
+.profile-image input[type="file"] {
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* username and email*/
+h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 40px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+p {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  color: #666;
+}

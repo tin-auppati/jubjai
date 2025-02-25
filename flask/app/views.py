@@ -189,7 +189,7 @@ def users_login():
         login_user(user, remember=remember)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('users_profile')
+            next_page = url_for('homepage')
         return redirect(next_page)
 
 
@@ -346,7 +346,7 @@ def google_auth():
         db.session.commit()
         user = User.query.filter_by(email=email).first()
     login_user(user)
-    return redirect('/lab10')
+    return redirect('/homepage')
 
 @app.route('/categories', methods=['GET', 'POST'])
 @login_required
@@ -505,3 +505,8 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@login_required
+@app.route('/homepage')
+def homepage():
+    return render_template('homepage.html')

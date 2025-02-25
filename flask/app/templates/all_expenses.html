@@ -20,12 +20,46 @@
     
     <!-- Sidebar -->
     <div class="sidebar">
-        <a href="{{ url_for('users_profile') }}" title="Profile">&#128100;</a>
-        <a href="#" title="Home"><i class="bi bi-house-fill"></i></a>
-        <a href="{{ url_for('categories') }}" title="Categories">&#128196;</a>
-        <a href="{{ url_for('create_expenses') }}" title="Create_expense"><i class="bi bi-pencil-square"></i></a>
-        <a href="{{ url_for('all_expenses') }}" title="All_expense"><i class="bi bi-clipboard2-fill"></i></a>
-        <a href="{{ url_for('users_logout') }}" title="Logout" style="justify-content: space-between; margin-top: auto;"><i class="bi bi-box-arrow-left"></i></a>
+        <ul>
+            <li>
+                <a href="{{ url_for('users_profile') }}" title="Profile">
+                    <span class=icon><i class="bi bi-person-circle"></i></span>
+                    <span class="text">Profile</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('homepage') }}" title="Home">
+                    <span class=icon><i class="bi bi-house-fill"></i></span>
+                    <span class="text">Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('create_expenses') }}" title="Create_expense">
+                    <span class=icon><i class="bi bi-pencil-square"></i></span>
+                    <span class="text">Create Entry</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('all_expenses') }}" title="All_expense">
+                    <span class=icon><i class="bi bi-clipboard2-fill"></i></span>
+                    <span class="text">All Transactions</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" title="Report">
+                    <span class=icon><i class="bi bi-bar-chart-fill"></i></span>
+                    <span class="text">Report</span>
+                </a>
+            </li>
+            <div class="bottom">
+                <li>
+                    <a href="{{ url_for('users_logout') }}" title="Logout">
+                        <span class=icon><i class="bi bi-box-arrow-left"></i></span>
+                        <span class="text">Logout</span>
+                    </a>
+                <li>
+            </div>
+        </ul>
     </div>
 
     <!-- Main Content -->

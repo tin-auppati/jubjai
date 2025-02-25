@@ -1,25 +1,57 @@
+html {
+  height: 100vh;
+  background-color: #fbf6fc;
+}
+
 body {
-    font-family: 'Montserrat', sans-serif;
-  }
-  .sidebar {
-        background-color: #dddbf8;
-        min-width: 70px;
-        max-width: 70px;
-        border-right: 1px solid #ddd;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 1rem;
-      }
-      .sidebar a {
-        display: block;
-        margin: 20px 0;
-        color: #000000;
-        text-decoration: none;
-        text-align: center;
-        font-size: 1.7rem;
-      }
+  font-family: 'Montserrat', sans-serif;
+}
+
+.sidebar {
+  background-color: #dddbf8;
+  min-width: 70px;
+  max-width: 70px;
+  border-right: 1px solid #ddd;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1rem;
+}
+
+.sidebar a {
+  display: block;
+  margin: 20px 0;
+  color: #000000;
+  text-decoration: none;
+  text-align: center;
+  font-size: 1.7rem;
+}
+
+.icon-option {
+  cursor: pointer;
+  margin-bottom: 10px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 100px;
+  /* Limits the icon's height */
+  object-fit: contain;
+  /* Maintains the image's aspect ratio */
+}
+
+.icon-option:hover {
+  border-color: #0d6efd;
+}
+
+/* Styling for the "Import New Icon" card */
+.import-icon {
+  cursor: pointer;
+  margin-bottom: 10px;
+  border: 2px dashed #0d6efd;
+  border-radius: 4px;
+  height: 100px;
+}
