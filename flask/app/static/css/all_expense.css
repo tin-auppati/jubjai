@@ -1,90 +1,128 @@
 body {
-            background-color: #f7f4fa;
-            margin: 0;
-            padding: 0;
-            font-family: 'Montserrat', sans-serif;
-        }
+    background-color: #f7f4fa;
+    font-family: 'Montserrat', sans-serif;
+}
 
-        /* Sidebar styling */
-        .sidebar {
-            background-color: #dddbf8;
-            min-width: 70px;
-            max-width: 70px;
-            border-right: 1px solid #ddd;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 1rem;
-          }
-          .sidebar a {
-            display: block;
-            margin: 20px 0;
-            color: #000000;
-            text-decoration: none;
-            text-align: center;
-            font-size: 1.7rem;
-          }
+/* Sidebar styling */
+.sidebar {
+    padding-top: 1rem;
+    position: absolute;
+    width: 70px;
+    height: 100vh;
+    background: #dddbf8;
+    overflow: hidden;
+    transition: 0.5s;
+}
 
-        /* Main content area */
-        .main-content {
-            margin-left: 60px;
-            /* same width as sidebar */
-            padding: 2rem;
-        }
+.sidebar:hover {
+    width: 250px;
+}
 
-        .main-content h2 {
-            margin-bottom: 1rem;
-        }
+.sidebar ul {
+    position: relative;
+    padding: 0;
+    height: 100vh;
+}
 
-        /* "New Expense" button alignment */
-        .new-expense-btn {
-            float: right;
-            margin-bottom: 1rem;
-        }
+.sidebar ul li {
+    list-style: none;
+}
 
-        /* Table styling */
-        .expense-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+.sidebar ul li {
+    background: #dddbf8;
+}
 
-        .expense-table thead th {
-            background-color: #f2f2f2;
-            text-align: left;
-            padding: 12px;
-        }
+.sidebar ul li a {
+    position: relative;
+    display: flex;
+    white-space: nowrap;
+    text-decoration: none;
+}
 
-        .expense-table tbody td {
-            padding: 12px;
-        }
+.sidebar ul li a .icon {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 70px;
+    height: 70px;
+    font-size: 1.5rem;
+    color: #333
+}
 
-        /* Pink row background */
-        .expense-table tbody tr {
-            background-color: #ffe9f4;
-            border-bottom: 1px solid #f3d8e6;
-        }
+.sidebar ul li a .text {
+    position: relative;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    font-size: 1em;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
 
-        .expense-table tbody tr:hover {
-            background-color: #ffdff0;
-        }
+.bottom {
+    position: absolute;
+    bottom: 1rem;
+    width: 100%;
+}
 
-        /* Optional styling for the category cell */
-        .category-cell {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+/* Main content area */
+.main-content {
+    margin-left: 60px;
+    /* same width as sidebar */
+    padding: 2rem;
+}
 
-        .category-cell img {
-            width: 24px;
-            height: 24px;
-        }
+.main-content h2 {
+    margin-bottom: 1rem;
+}
 
-        .date-text {
-            font-size: 0.9rem;
-            color: #666;
-        }
+/* "New Expense" button alignment */
+.new-expense-btn {
+    float: right;
+    margin-bottom: 1rem;
+}
+
+/* Table styling */
+.expense-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.expense-table thead th {
+    background-color: #f2f2f2;
+    text-align: left;
+    padding: 12px;
+}
+
+.expense-table tbody td {
+    padding: 12px;
+}
+
+/* Pink row background */
+.expense-table tbody tr {
+    background-color: #ffe9f4;
+    border-bottom: 1px solid #f3d8e6;
+}
+
+.expense-table tbody tr:hover {
+    background-color: #ffdff0;
+}
+
+/* Optional styling for the category cell */
+.category-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-cell img {
+    width: 24px;
+    height: 24px;
+}
+
+.date-text {
+    font-size: 0.9rem;
+    color: #666;
+}
