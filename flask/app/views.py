@@ -126,8 +126,7 @@ def users_index():
 @app.route('/users/profile')
 @login_required
 def users_profile():
-    # if not avatar_url use default image
-    profile_image = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default-avatar.png')
+    profile_image = current_user.avatar_url
     return render_template('users/profile.html', profile_image=profile_image)
 
 @app.route('/users/upload_profile', methods=['POST'])
@@ -136,7 +135,7 @@ def upload_profile():
     file = request.files['file']
     if file:
         filename = secure_filename(file.filename)
-        upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+        upload_folder = os.path.join(app.root_path, 'static', 'uploads')
         file_path = os.path.join(upload_folder, filename)
         file.save(file_path)
 
@@ -472,7 +471,7 @@ def create_expenses():
 @login_required
 @app.route('/all_expenses')
 def all_expenses():
-    # Example: retrieve expense data from DB
+    
     expenses = Expense.query.all()
     expense_categories = [
         (expense, Category.query.get(expense.category_id))
