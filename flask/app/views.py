@@ -526,3 +526,8 @@ def allowed_file(filename):
 @app.route('/homepage')
 def homepage():
     return render_template('homepage.html')
+
+@login_required
+@app.route('/report')
+def report():
+    return render_template('report.html')
