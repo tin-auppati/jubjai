@@ -2,7 +2,7 @@ import json
 import secrets
 import string
 from flask import (jsonify, render_template,
-                  request, url_for, flash, redirect, current_app)
+                  request, url_for, flash, redirect, current_app, session)
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from sqlalchemy.sql import text
@@ -43,6 +43,34 @@ def db_connection():
         return '<h1>db works.</h1>'
     except Exception as e:
         return '<h1>db is broken.</h1>' + str(e)
+    
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # find admin in db
+        admin = User.query.filter_by(email=email, is_admin=True).first()
+
+        if admin and check_password_hash(admin.password, password):
+            flash("Login successful!", "success")
+            session['admin_id'] = admin.id  # record admin session
+            return redirect(url_for('data_list'))  # users data page
+        else:
+            flash("Invalid email or password.", "danger")
+
+    return render_template('login_admin.html')
+
+@app.route('/admin/data', methods=['GET', 'POST'])
+def data_list():
+    return render_template('data.html')
+
+@app.route('/admin/logout')
+@login_required
+def admin_logout():
+    logout_user()
+    return redirect(url_for('admin_login'))
 
 
 @app.route('/jubjai_users_db')
