@@ -81,7 +81,7 @@
                         </div>
                     </div>
                     <div class="col-md-auto ">
-                        <a href="{{ url_for('create_expenses') }}" class="btn btn-primary new-expense-btn p-3 ">+ New Expense</a>
+                        <a href="{{ url_for('create_transactions' ,transaction_type='expense')}}" class="btn btn-primary new-expense-btn p-3 ">+ New Expense</a>
                     </div>
                 </div>
             </div>
@@ -106,7 +106,7 @@
                             <img src="{{ category.icon_url }}" alt="{{ category.name }} Icon">
                             <div>
                                 <strong>{{ category.name }}</strong>
-                                <div class="date-text">{{ expense.expense_date.strftime('%m/%d/%Y') }}</div>
+                                <div class="date-text">{{ expense.transaction_date.strftime('%m/%d/%Y') }}</div>
                             </div>
                         </div>
                     </td>

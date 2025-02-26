@@ -2,7 +2,7 @@ from flask.cli import FlaskGroup
 from werkzeug.security import generate_password_hash
 from app import app, db
 from app.models.contact import Contact
-from app.models.jubjai import User,Category,Expense
+from app.models.jubjai import User,Category,Transaction
 from app import views
 from datetime import datetime
 
@@ -50,24 +50,48 @@ def seed_db():
         name="Food",
         user_id=user.id,
         icon_url="https://cdn-icons-png.flaticon.com/512/1046/1046857.png",
-        description="Expenses on food and dining",
+        description="Transactions on food and dining",
         monthly_limit=500.00
     )
-    # Set the foreign key (category.user_id) to the created user's id
+    
     db.session.add(category)
-    db.session.commit()  # Commit to get category.category_id generated
+    db.session.commit()  
 
-    # Create a sample expense for the user in the created category
-    expense = Expense(
+    category_income = Category(
+        name="Income",
+        user_id=user.id,
+        icon_url="https://cdn-icons-png.flaticon.com/512/123/123123.png",
+        description="Income",
+    )
+    
+    db.session.add(category_income)
+    db.session.commit()  
+
+    
+    transaction = Transaction(
         amount=100.00,
         entry_method="manual",  # Only "manual" or "slip" allowed
         description="Lunch at a restaurant",
-        expense_date=datetime.now(),
+        transaction_date=datetime.now(),
         user_id=user.id,
-        category_id=category.category_id
+        category_id=category.category_id,
+        transaction_type = "expense"
     )
-    # Set foreign keys for expense
-    db.session.add(expense)
+    
+    db.session.add(transaction)
+    db.session.commit()
+
+    transaction_income = Transaction(
+        amount=100.00,
+        entry_method="manual",  # Only "manual" or "slip" allowed
+        description="Income",
+        transaction_date=datetime.now(),
+        user_id=user.id,
+        category_id=category_income.category_id,
+        transaction_type = "income"
+    )
+    
+    db.session.add(transaction_income)
     db.session.commit()
 
 

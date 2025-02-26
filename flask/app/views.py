@@ -18,7 +18,7 @@ import os
 from sqlalchemy import func, extract
 
 from app.models.contact import Contact
-from app.models.jubjai import User,Category,Expense
+from app.models.jubjai import User,Category,Transaction
 from flask import send_from_directory
 
 
@@ -93,10 +93,10 @@ def view_jubjai_catagories():
     entries_json = [entry.to_dict() for entry in users]
     return jsonify(entries_json)
 
-@app.route('/jubjai_expenses_db')
-def view_jubjai_expenses():
+@app.route('/jubjai_transactions_db')
+def view_jubjai_transactions():
         
-    query = Expense.query
+    query = Transaction.query
     is_deleted_param = request.args.get('is_deleted')
     if is_deleted_param is not None:
         # Convert the parameter to a boolean.
@@ -109,9 +109,9 @@ def view_jubjai_expenses():
     # Optional ordering: default is descending by date_updated.
     order = request.args.get('order', 'desc').lower()
     if order == 'asc':
-        query = query.order_by(Expense.date_updated.asc())
+        query = query.order_by(Transaction.date_updated.asc())
     else:
-        query = query.order_by(Expense.date_updated.desc())
+        query = query.order_by(Transaction.date_updated.desc())
 
     users = query.all()
     entries_json = [entry.to_dict() for entry in users]
@@ -373,7 +373,7 @@ def categories():
         )
         db.session.add(new_category)
         db.session.commit()
-        return redirect(url_for('create_expenses'))
+        return redirect(url_for('create_transactions'))
     else:
         # Create a list of icons (30 icons, for example)
         icon_list = [
@@ -411,29 +411,25 @@ def categories():
         return render_template('categories.html', icon_list=icon_list)
 
 @login_required
-@app.route('/expenses', methods=['GET', 'POST'])
-def create_expenses():
+@app.route('/transactions', methods=['GET', 'POST'])
+def create_transactions():
     if request.method == 'POST':
-        # Get form values
+        # Process the form submission
         total = request.form.get('total')
         date_str = request.form.get('date')
         category_id = request.form.get('category')
         description = request.form.get('description')
         entry_method = request.form.get('entry_method')  # "manual" or "slip"
+        transaction_type = request.form.get('transaction_type')  # "expense" or "income"
 
-        # Convert date string to date
-        expense_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
-
-        # Convert total to Decimal
+        transaction_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
         try:
             amount = Decimal(total)
-        except Exception as e:
+        except Exception:
             amount = Decimal('0.00')
 
-        # Initialize slip_image_url as None
         slip_image_url = None
         if entry_method == 'slip':
-            # Handle the file upload if slip is selected
             if 'slip_image' in request.files:
                 slip_file = request.files['slip_image']
                 if slip_file and slip_file.filename:
@@ -445,54 +441,52 @@ def create_expenses():
                     slip_file.save(file_path)
                     slip_image_url = file_path
 
-        # Create the expense instance
-        new_expense = Expense(
+        new_transaction = Transaction(
             amount=amount,
+            transaction_type=transaction_type,
             entry_method=entry_method,
             user_id=current_user.id,
             category_id=category_id,
             description=description,
-            expense_date=expense_date,
+            transaction_date=transaction_date,
             slip_image_url=slip_image_url
         )
 
-        db.session.add(new_expense)
+        db.session.add(new_transaction)
         db.session.commit()
 
-        # --- New Code for Monthly Limit Alert ---
-        # Retrieve the category from the DB
+        # Monthly Limit Alert Code...
         category = Category.query.get(category_id)
         if category and category.monthly_limit:
-            
-            # Sum up all expenses for this category for the same month & year as the expense_date
             monthly_sum = db.session.query(
-                func.coalesce(func.sum(Expense.amount), 0)
+                func.coalesce(func.sum(Transaction.amount), 0)
             ).filter(
-                Expense.category_id == category_id,
-                extract('year', Expense.expense_date) == expense_date.year,
-                extract('month', Expense.expense_date) == expense_date.month
+                Transaction.category_id == category_id,
+                extract('year', Transaction.transaction_date) == transaction_date.year,
+                extract('month', Transaction.transaction_date) == transaction_date.month
             ).scalar()
 
             if monthly_sum > category.monthly_limit:
                 flash(f"Alert: You have exceeded the monthly limit for {category.name}.", "warning")
-        # -----------------------------------------
 
-        return redirect(url_for('create_expenses'))
+        return redirect(url_for('create_transactions'))
     else:
         categories = Category.query.all()
         current_date = datetime.now().strftime('%Y-%m-%d')
-        return render_template('expenses.html', categories=categories, current_date=current_date)
+        # Get the transaction_type from the query string, defaulting to "expense"
+        transaction_type_default = request.args.get('transaction_type', 'expense')
+        return render_template('transactions.html', categories=categories, current_date=current_date, transaction_type_default=transaction_type_default)
 
 @login_required
 @app.route('/all_expenses')
 def all_expenses():
     
-    expenses = Expense.query.all()
+    expenses = Transaction.query.filter_by(transaction_type="expense").all()
     expense_categories = [
         (expense, Category.query.get(expense.category_id))
         for expense in expenses
     ]
-    return render_template('all_expenses.html', expense_categories=expense_categories)
+    return render_template('all_expenses.html', expenses = expenses,expense_categories=expense_categories)
 
 
 @app.route('/upload_icon', methods=['POST'])
@@ -534,5 +528,10 @@ def report():
 @login_required
 @app.route('/all_incomes')
 def all_incomes():
-    return render_template('all_incomes.html')
+    incomes = Transaction.query.filter_by(transaction_type="income").all()
+    income_categories = [
+        (income, Category.query.get(income.category_id))
+        for income in incomes
+    ]
+    return render_template('all_incomes.html', incomes = incomes,income_categories=income_categories)
 
