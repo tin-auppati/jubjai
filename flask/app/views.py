@@ -505,3 +505,12 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/home')
+def home_page():
+    expenses = Expense.query.all()
+    expense_categories = [
+        (expense, Category.query.get(expense.category_id))
+        for expense in expenses
+    ]
+    return render_template('homepage.html', expense_categories=expense_categories)

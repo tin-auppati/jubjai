@@ -1,10 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>All Expenses</title>
-    <!-- Bootstrap CSS (optional) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+  <meta charset="UTF-8">
+  <title>Home</title>
+  <!-- Bootstrap CSS (optional) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <a href="{{ url_for('users_profile') }}" title="Profile">&#128100;</a>
+    <a href="{{ url_for('home_page') }}" title="Home"><i class="bi bi-house-fill"></i></a>
+    <a href="{{ url_for('categories') }}" title="Categories">&#128196;</a>
+    <a href="{{ url_for('create_expenses') }}" title="Create_expense"><i class="bi bi-pencil-square"></i></a>
+    <a href="{{ url_for('all_expenses') }}" title="All_expense"><i class="bi bi-clipboard2-fill"></i></a>
+    <a href="{{ url_for('users_logout') }}" title="Logout" style="justify-content: space-between; margin-top: auto;">
+      <i class="bi bi-box-arrow-left"></i>
+    </a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Cards: Income, Expense, Total -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card p-3 text-center">
+          <i class="bi bi-wallet2 fs-1"></i>
+          <h5>Income</h5>
+          <h3>14250</h3>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card p-3 text-center">
+          <i class="bi bi-cash-stack fs-1"></i>
+          <h5>Expense</h5>
+          <h3>14250</h3>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card p-3 text-center">
+          <i class="bi bi-clipboard-check fs-1"></i>
+          <h5>Total</h5>
+          <h3>14250</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layout: Chart and Calendar -->
+<div class="row align-items-stretch">
+    <!-- คอลัมน์กราฟ -->
+    <div class="col-md-8 d-flex flex-column">
+      <div class="card flex-grow-1 d-flex flex-column">
+        <div class="card-header">
+          <h5>All Expenses</h5>
+        </div>
+        <div class="card-body d-flex flex-column">
+          <!-- ส่วนของกราฟที่ต้องการให้ยืดเต็มพื้นที่ -->
+          <div class="chart-bars flex-grow-1 d-flex align-items-end">
+            <div class="bar-container">
+              <div class="bar" style="height: 25%;"></div>
+              <span>Jan</span>
+            </div>
+            <div class="bar-container">
+              <div class="bar" style="height: 50%;"></div>
+              <span>Feb</span>
+            </div>
+            <div class="bar-container">
+              <div class="bar" style="height: 75%;"></div>
+              <span>Mar</span>
+            </div>
+            <div class="bar-container">
+              <div class="bar" style="height: 100%;"></div>
+              <span>Apr</span>
+            </div>
+            <div class="bar-container">
+              <div class="bar" style="height: 25%;"></div>
+              <span>May</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+      <!-- คอลัมน์ปฏิทิน -->
+      <div class="col-md-4 d-flex flex-column">
+        <div class="card flex-grow-1">
+          <!-- เนื้อหา Calendar -->
+          <div class="d-flex align-items-center justify-content-between">
+            <button class="btn btn-light" id="prevMonth">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <h5 id="monthYear" class="mb-0">Month Year</h5>
+            <button class="btn btn-light" id="nextMonth">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+          <table class="calendar">
+            <thead>
+              <!-- ... -->
+            </thead>
+            <tbody id="calendarBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.1/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+
+  <script>
+    // ตัวอย่างข้อมูล Event หลายวัน/หลายเดือน
+    // สามารถเพิ่ม/แก้ไข หรือดึงจาก Backend ตามต้องการ
+    const events = [
+      { date: '2025-02-10', type: 'income',  title: 'Salary' },
+      { date: '2025-02-15', type: 'expense', title: 'Rent' },
+      { date: '2025-02-26', type: 'expense', title: 'Night Horror' },
+      { date: '2025-02-26', type: 'expense', title: 'Romantic Sunday' },
+      { date: '2025-02-27', type: 'expense', title: 'Evening Movie' },
+      { date: '2025-02-20', type: 'income',  title: 'Freelance Work' },
+      { date: '2025-03-02', type: 'expense', title: 'Shopping' },
+      { date: '2025-03-10', type: 'income',  title: 'Bonus' }
+    ];
+
+    // ตั้งค่าเดือน/ปีเริ่มต้น
+    let currentYear = 2025;
+    let currentMonth = 1; // 1 = February (JS นับเดือนจาก 0)
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    // ฟังก์ชันวาดปฏิทิน
+    function renderCalendar(year, month) {
+      const calendarBody = document.getElementById('calendarBody');
+      const monthYear = document.getElementById('monthYear');
+      
+      // เคลียร์ตารางเก่า
+      calendarBody.innerHTML = '';
+
+      // ตั้งหัวข้อ
+      monthYear.textContent = `${monthNames[month]} ${year}`;
+
+      // หา day ของวันแรก กับจำนวนวันทั้งหมด
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+
+      let row = document.createElement('tr');
+
+      // เว้นช่องก่อนวันแรก
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        let emptyCell = document.createElement('td');
+        row.appendChild(emptyCell);
+      }
+
+      // สร้าง td ตามจำนวนวัน
+      for (let day = 1; day <= lastDateOfMonth; day++) {
+        let cell = document.createElement('td');
+        let cellDate = new Date(year, month, day);
+
+        // YYYY-MM-DD
+        let dayString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+        // หา events ในวันนี้
+        let dayEvents = events.filter(e => e.date === dayString);
+
+        // แสดงวันที่
+        let dayNumber = document.createElement('div');
+        dayNumber.innerHTML = `<strong>${day}</strong>`;
+        cell.appendChild(dayNumber);
+
+        // ถ้ามี event ก็วนสร้าง div
+        if (dayEvents.length > 0) {
+          dayEvents.forEach(e => {
+            let eventDiv = document.createElement('div');
+            eventDiv.classList.add('event');
+            if (e.type === 'income') {
+              eventDiv.classList.add('event-income');
+            } else if (e.type === 'expense') {
+              eventDiv.classList.add('event-expense');
+            }
+            eventDiv.innerText = e.title;
+            cell.appendChild(eventDiv);
+          });
+        }
+
+        row.appendChild(cell);
+
+        // ถ้าเป็นวันเสาร์ -> ขึ้นแถวใหม่
+        if (cellDate.getDay() === 6) {
+          calendarBody.appendChild(row);
+          row = document.createElement('tr');
+        }
+      }
+
+      // แถวสุดท้าย ถ้ายังไม่เต็ม 7 ช่อง ให้แสดงเลย
+      if (row.childNodes.length > 0) {
+        calendarBody.appendChild(row);
+      }
+    }
+
+    // ปุ่ม Prev/Next
+    function prevMonth() {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar(currentYear, currentMonth);
+    }
+    function nextMonth() {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar(currentYear, currentMonth);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // เริ่มวาดปฏิทิน
+      renderCalendar(currentYear, currentMonth);
+      // ผูก event ปุ่ม
+      document.getElementById('prevMonth').addEventListener('click', prevMonth);
+      document.getElementById('nextMonth').addEventListener('click', nextMonth);
+    });
+  </script>
+</body>
+</html>

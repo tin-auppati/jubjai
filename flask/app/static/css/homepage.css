@@ -1,0 +1,148 @@
+body {
+            background-color: #f7f4fa;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            background-color: #dddbf8;
+            min-width: 70px;
+            max-width: 70px;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 1rem;
+          }
+          .sidebar a {
+            display: block;
+            margin: 20px 0;
+            color: #000000;
+            text-decoration: none;
+            text-align: center;
+            font-size: 1.7rem;
+          }
+
+        /* Main content area */
+        .main-content {
+            margin-left: 60px;
+            /* same width as sidebar */
+            padding: 2rem;
+        }
+
+        .main-content h2 {
+            margin-bottom: 1rem;
+        }
+
+        /* "New Expense" button alignment */
+        .new-expense-btn {
+            float: right;
+            margin-bottom: 1rem;
+        }
+
+        /* Table styling */
+        .expense-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .expense-table thead th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 12px;
+        }
+
+        .expense-table tbody td {
+            padding: 12px;
+        }
+
+        /* Pink row background */
+        .expense-table tbody tr {
+            background-color: #ffe9f4;
+            border-bottom: 1px solid #f3d8e6;
+        }
+
+        .expense-table tbody tr:hover {
+            background-color: #ffdff0;
+        }
+
+        /* Optional styling for the category cell */
+        .category-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-cell img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .date-text {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+/* Chart Bars */
+.chart-bars {
+  height: 100%; /* ใช้ความสูงเต็มพื้นที่ */
+  justify-content: space-around; /* กระจายแท่งกราฟเท่าๆ กัน */
+  padding: 0 1rem;
+}
+
+.bar-container {
+  height: 100%; /* รับความสูงจาก .chart-bars */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end; /* จัดเดือนไว้ด้านล่าง */
+}
+
+.bar {
+  width: 35px;
+  background: #7F56D9; /* สีม่วง */
+  border-radius: 4px;
+  min-height: 2px; /* แสดงแท่งกราฟแม้ height เป็น 0 */
+}
+
+  
+  /* ===== Calendar Styles ===== */
+table.calendar {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 10px;
+}
+table.calendar th,
+table.calendar td {
+  border: 1px solid #ccc;
+  text-align: center;
+  width: 14.28%; /* 100/7 = ~14.28% */
+  height: 90px;
+  vertical-align: top;
+}
+table.calendar th {
+  background: #eee;
+  padding: 5px;
+}
+
+/* กล่องแสดง Event แต่ละอัน */
+.event {
+  margin: 2px 0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  line-height: 1.2rem;
+}
+.event-income {
+  background-color: #c4f4c4; /* เขียวอ่อน */
+}
+.event-expense {
+  background-color: #f4c4c4; /* แดงอ่อน */
+}
+  
