@@ -16,49 +16,49 @@
 
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <ul>
-        <li>
-            <a href="{{ url_for('users_profile') }}" title="Profile">
-                <span class=icon><i class="bi bi-person-circle"></i></span>
-                <span class="text">Profile</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('homepage') }}" title="Home">
-                <span class=icon><i class="bi bi-house-fill"></i></span>
-                <span class="text">Home</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('create_expenses') }}" title="Create_expense">
-                <span class=icon><i class="bi bi-pencil-square"></i></span>
-                <span class="text">Create Entry</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('all_expenses') }}" title="All_expense">
-                <span class=icon><i class="bi bi-clipboard2-fill"></i></span>
-                <span class="text">All Transactions</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('report') }}" title="Report">
-                <span class=icon><i class="bi bi-bar-chart-fill"></i></span>
-                <span class="text">Report</span>
-            </a>
-        </li>
-        <div class="bottom">
-            <li>
-                <a href="{{ url_for('users_logout') }}" title="Logout">
-                    <span class=icon><i class="bi bi-box-arrow-left"></i></span>
-                    <span class="text">Logout</span>
-                </a>
-            <li>
-        </div>
-    </ul>
-</div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <ul>
+          <li>
+              <a href="{{ url_for('users_profile') }}" title="Profile">
+                  <span class=icon><i class="bi bi-person-circle"></i></span>
+                  <span class="text">Profile</span>
+              </a>
+          </li>
+          <li>
+              <a href="{{ url_for('homepage') }}" title="Home">
+                  <span class=icon><i class="bi bi-house-fill"></i></span>
+                  <span class="text">Home</span>
+              </a>
+          </li>
+          <li>
+              <a href="{{ url_for('all_incomes') }}" title="Income">
+                  <span class=icon><i class="bi bi-wallet-fill"></i></span>
+                  <span class="text">Income</span>
+              </a>
+          </li>
+          <li>
+              <a href="{{ url_for('all_expenses') }}" title="All_expense">
+                  <span class=icon><i class="bi bi-clipboard2-fill"></i></span>
+                  <span class="text">Expense</span>
+              </a>
+          </li>
+          <li>
+              <a href="{{ url_for('report') }}" title="Report">
+                  <span class=icon><i class="bi bi-bar-chart-fill"></i></span>
+                  <span class="text">Report</span>
+              </a>
+          </li>
+          <div class="bottom">
+              <li>
+                  <a href="{{ url_for('users_logout') }}" title="Logout">
+                      <span class=icon><i class="bi bi-box-arrow-left"></i></span>
+                      <span class="text">Logout</span>
+                  </a>
+              <li>
+          </div>
+      </ul>
+  </div>
 
   <!-- Main Content -->
   <div class="main-content">
@@ -89,39 +89,16 @@
 
     <!-- Layout: Chart and Calendar -->
 <div class="row align-items-stretch">
-    <!-- คอลัมน์กราฟ -->
-    <div class="col-md-8 d-flex flex-column">
-      <div class="card flex-grow-1 d-flex flex-column">
-        <div class="card-header">
-          <h5>All Expenses</h5>
-        </div>
-        <div class="card-body d-flex flex-column">
-          <!-- ส่วนของกราฟที่ต้องการให้ยืดเต็มพื้นที่ -->
-          <div class="chart-bars flex-grow-1 d-flex align-items-end">
-            <div class="bar-container">
-              <div class="bar" style="height: 25%;"></div>
-              <span>Jan</span>
-            </div>
-            <div class="bar-container">
-              <div class="bar" style="height: 50%;"></div>
-              <span>Feb</span>
-            </div>
-            <div class="bar-container">
-              <div class="bar" style="height: 75%;"></div>
-              <span>Mar</span>
-            </div>
-            <div class="bar-container">
-              <div class="bar" style="height: 100%;"></div>
-              <span>Apr</span>
-            </div>
-            <div class="bar-container">
-              <div class="bar" style="height: 25%;"></div>
-              <span>May</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- Example: แทนที่ส่วนตารางกราฟเดิม -->
+<div class="col-md-8">
+  <div class="card text-light p-3">
+    <h5>Last 7 days</h5>
+    <!-- Canvas element for Chart.js -->
+    <canvas id="myChart"></canvas>
+  </div>
+</div>
+
+
   
       <!-- คอลัมน์ปฏิทิน -->
       <div class="col-md-4 d-flex flex-column">
@@ -270,6 +247,78 @@
       document.getElementById('prevMonth').addEventListener('click', prevMonth);
       document.getElementById('nextMonth').addEventListener('click', nextMonth);
     });
+  </script>
+
+  <!-- เรียกใช้ Chart.js จาก CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+  // เลือก canvas ที่มี id="myChart"
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  // ตัวอย่างข้อมูล (Side by Side)
+  const data = {
+    labels: ['20 Thu', '21 Fri', '22 Sat', '23 Sun', '24 Mon', '25 Tue', '26 Wed'],
+    datasets: [
+      {
+        label: 'Income',
+        data: [0, 60, 0, 0, 0, 0, 0], // ใส่ 0 ในวันที่ไม่มี Income
+        backgroundColor: 'green'
+      },
+      {
+        label: 'Expense',
+        data: [120, 0, 80, 60, 40, 25, 50], // ใส่ 0 ในวันที่ไม่มี Expense
+        backgroundColor: 'red'
+      }
+    ]
+  };
+
+  // กำหนดรูปแบบกราฟ
+  const config = {
+    type: 'bar',
+    data: data,
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return '$' + value;
+            }
+          },
+          grid: {
+            borderDash: [5, 5],
+            borderDashOffset: 2,
+            color: 'gray' // Fixed: wrap the color in quotes
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = context.parsed.y;
+              if (val === 0) return 'No data';
+              return `$${val} ${context.dataset.label}`;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  // สร้าง Chart
+  new Chart(ctx, config);
+});
+
   </script>
 </body>
 </html>

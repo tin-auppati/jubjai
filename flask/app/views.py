@@ -531,3 +531,9 @@ def homepage():
 @app.route('/report')
 def report():
     return render_template('report.html')
+
+@login_required
+@app.route('/all_incomes')
+def all_incomes():
+    return render_template('all_incomes.html')
+

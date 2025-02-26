@@ -1,5 +1,6 @@
 body {
-    background-color: #fbf6fc !important;
+    background-color: #f7f4fa;
+    font-family: 'Montserrat', sans-serif;
 }
 
 /* Sidebar styling */
@@ -11,7 +12,6 @@ body {
     background: #dddbf8;
     overflow: hidden;
     transition: 0.5s;
-    z-index: 1000;
 }
 
 .sidebar:hover {
