@@ -44,6 +44,10 @@ login_manager = LoginManager()
 login_manager.login_view = 'users_login'
 login_manager.init_app(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "admin_login"
+
 @app.before_request
 def remove_trailing_slash():
    # Check if the path ends with a slash but is not the root "/"
