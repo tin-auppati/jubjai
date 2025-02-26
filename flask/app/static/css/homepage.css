@@ -66,7 +66,25 @@ body {
     bottom: 1rem;
     width: 100%;
 }
-        
+
+.card-custom {
+    height: 150px; /* กำหนดความสูงคงที่ */
+    border: 2px solid #dee2e6; /* เส้นกรอบ */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* เงาเล็กน้อย */
+}
+  
+.card-custom h3 {
+    font-size: 2.5rem; /* ตัวเลขใหญ่ */
+    font-weight: 700;
+    color: #2c3e50; /* สีตัวเลข */
+}
+  
+.card-custom h5 {
+    font-size: 1.2rem;
+    color: #7f8c8d; /* สีข้อความ */
+    text-transform: uppercase; /* ตัวใหญ่ทั้งหมด */
+    letter-spacing: 1px;
+}
         
 /* Main content area */
 .main-content {
@@ -128,27 +146,11 @@ body {
     color: #666;
 }
 
-/* Chart Bars */
-.chart-bars {
-  height: 100%; /* ใช้ความสูงเต็มพื้นที่ */
-  justify-content: space-around; /* กระจายแท่งกราฟเท่าๆ กัน */
-  padding: 0 1rem;
-}
-
-.bar-container {
-  height: 100%; /* รับความสูงจาก .chart-bars */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end; /* จัดเดือนไว้ด้านล่าง */
-}
-
-.bar {
-  width: 35px;
-  background: #7F56D9; /* สีม่วง */
-  border-radius: 4px;
-  min-height: 2px; /* แสดงแท่งกราฟแม้ height เป็น 0 */
-}
+.chart-container {
+    position: relative;
+    height: 300px; /* หรือกำหนดตามต้องการ */
+    width: 100%;
+  }
 
   
   /* ===== Calendar Styles ===== */

@@ -88,8 +88,9 @@ body {
 /* "New Expense" button alignment */
 .new-expense-btn {
     float: right;
-    margin-bottom: 1rem;
+    margin: 0 auto;
 }
+
 
 /* Table styling */
 .expense-table {
