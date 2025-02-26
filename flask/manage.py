@@ -20,7 +20,17 @@ def create_db():
 
 @cli.command("seed_db")
 def seed_db():
-    
+    admin = User(
+        id=0,
+        email="admin@example.com",
+        name="Admin User",
+        password=generate_password_hash('adminpass', method='sha256'),
+        avatar_url="https://ui-avatars.com/api/?name=Admin&background=000&color=fff",
+        is_admin=True
+    )
+    db.session.add(admin)
+    db.session.commit()
+
 
     user = User(
         email="flask@204212",

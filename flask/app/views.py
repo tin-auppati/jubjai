@@ -118,7 +118,6 @@ def view_jubjai_expenses():
     return jsonify(entries_json)
 
 
-
 @app.route('/users')
 def users_index():
    return render_template('users/index.html')

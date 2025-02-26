@@ -16,8 +16,13 @@ class User(db.Model, UserMixin, SerializerMixin):
     date_created = db.Column(db.DateTime, default=datetime.now)
     date_updated = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     is_deleted = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
-    def __init__(self, email, name, password, avatar_url, date_created=None, date_updated=None, is_deleted=False):
+    def __init__(self, email, name, password, avatar_url, id=None,date_created=None, date_updated=None, is_deleted=False, is_admin=False):
+        if is_admin:
+            self.id = 0
+        else:
+            self.id = id
         self.email = email
         self.name = name
         self.password = password
@@ -25,6 +30,7 @@ class User(db.Model, UserMixin, SerializerMixin):
         self.date_created = date_created if date_created else datetime.now()
         self.date_updated = date_updated if date_updated else datetime.now()
         self.is_deleted = is_deleted
+        self.is_admin = is_admin
 
 class Category(db.Model, SerializerMixin):
     __tablename__ = "categories"
