@@ -631,15 +631,32 @@ def edit_transaction(transaction_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-
 @login_required
 @app.route('/homepage')
 def homepage():
     return render_template('homepage.html')
 
-@login_required
 @app.route('/report')
+@login_required
 def report():
-    return render_template('report.html')
+    transactions = get_user_transactions(current_user.id)
+    return render_template("report.html", transactions=transactions, current_date=datetime.now().strftime('%Y-%m-%d'))
+
+
+
+def get_user_transactions(user_id):
+    """
+    ดึงรายการธุรกรรมของผู้ใช้ที่ระบุ (ที่ยังไม่ถูกลบ) พร้อมกับข้อมูล category
+    คืนค่าเป็น list ของ dict ที่มี key 'transaction' และ 'category'
+    """
+    transactions = Transaction.query.filter_by(user_id=user_id, is_deleted=False).order_by(Transaction.transaction_date.desc()).all()
+    transaction_list = []
+    for t in transactions:
+        category = Category.query.filter_by(category_id=t.category_id, user_id=user_id).first()
+        transaction_list.append({
+            "transaction": t.to_dict(),
+            "category": category.to_dict() if category else None
+        })
+    return transaction_list
 
 
