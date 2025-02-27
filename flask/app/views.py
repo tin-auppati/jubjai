@@ -386,6 +386,7 @@ def categories():
         description = request.form.get('description')
         monthly_limit = request.form.get('monthly_limit')
         icon_url = request.form.get('icon_url')
+        transaction_type = request.form.get('transaction_type')
         # Convert monthly_limit to Decimal if provided
         
         try:
@@ -398,11 +399,12 @@ def categories():
             user_id=current_user.id,  # Make sure the user is logged in
             description=description,
             monthly_limit=monthly_limit,
-            icon_url=icon_url
+            icon_url=icon_url,
+            transaction_type=transaction_type
         )
         db.session.add(new_category)
         db.session.commit()
-        return redirect(url_for('create_transactions'))
+        return redirect(url_for('create_transactions',transaction_type=transaction_type))
     else:
         # Create a list of icons (30 icons, for example)
         icon_list = [
@@ -439,8 +441,8 @@ def categories():
         ]
         return render_template('categories.html', icon_list=icon_list)
 
-@login_required
 @app.route('/transactions', methods=['GET', 'POST'])
+@login_required
 def create_transactions():
     if request.method == 'POST':
         # Process the form submission
@@ -457,6 +459,12 @@ def create_transactions():
         except Exception:
             amount = Decimal('0.00')
 
+        # Validate that the selected category belongs to the current user
+        category = Category.query.filter_by(category_id=category_id, user_id=current_user.id, is_deleted=False).first()
+        if not category:
+            flash("Invalid category selected.", "danger")
+            return redirect(url_for('create_transactions', transaction_type=transaction_type))
+        
         slip_image_url = None
         if entry_method == 'slip':
             if 'slip_image' in request.files:
@@ -485,7 +493,7 @@ def create_transactions():
         db.session.commit()
 
         # Monthly Limit Alert Code...
-        category = Category.query.get(category_id)
+        # category is already fetched above and is verified to belong to current_user
         if category and category.monthly_limit:
             monthly_sum = db.session.query(
                 func.coalesce(func.sum(Transaction.amount), 0)
@@ -502,10 +510,11 @@ def create_transactions():
     else:
         # Get the transaction type from the query string, defaulting to "expense"
         transaction_type_default = request.args.get('transaction_type', 'expense')
-        # Filter categories by the transaction type and that are not deleted
+        # Filter categories by the transaction type, not deleted, and only the current user's
         categories = Category.query.filter_by(
             transaction_type=transaction_type_default,
-            is_deleted=False
+            is_deleted=False,
+            user_id=current_user.id
         ).all()
         current_date = datetime.now().strftime('%Y-%m-%d')
         return render_template('transactions.html', 
@@ -552,8 +561,11 @@ def all_transactions():
     except ValueError:
         selected_date = datetime.today().date()
 
-    # Exclude soft-deleted transactions
-    query = Transaction.query.filter(Transaction.is_deleted == False)
+    # Only show transactions for the current user and exclude soft-deleted transactions.
+    query = Transaction.query.filter(
+        Transaction.is_deleted == False,
+        Transaction.user_id == current_user.id
+    )
 
     if transaction_type != "all":
         query = query.filter(Transaction.transaction_type == transaction_type)
@@ -574,8 +586,12 @@ def all_transactions():
         query = query.filter(extract('year', Transaction.transaction_date) == selected_date.year)
 
     transactions = query.all()
-    # Note: Using transaction.transaction_id instead of transaction.id
-    transaction_list = [(t, Category.query.get(t.category_id)) for t in transactions]
+
+    # Make sure the category is also owned by the user.
+    transaction_list = [
+        (t, Category.query.filter_by(category_id=t.category_id, user_id=current_user.id).first())
+        for t in transactions
+    ]
 
     current_date = datetime.today().strftime('%Y-%m-%d')
     return render_template('all_transactions.html',
@@ -587,8 +603,8 @@ def all_transactions():
 @login_required
 def delete_transaction(transaction_id):
     transaction = Transaction.query.get(transaction_id)
-    if not transaction:
-        return jsonify({"success": False, "message": "Transaction not found"}), 404
+    if not transaction or transaction.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Transaction not found or access denied"}), 404
     transaction.is_deleted = True  # Soft delete
     db.session.commit()
     return jsonify({"success": True})
@@ -597,11 +613,11 @@ def delete_transaction(transaction_id):
 @login_required
 def edit_transaction(transaction_id):
     transaction = Transaction.query.get(transaction_id)
-    if not transaction:
-        return jsonify({"success": False, "message": "Transaction not found"}), 404
+    if not transaction or transaction.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Transaction not found or access denied"}), 404
+
     data = request.get_json()
     try:
-        # Update fields with provided data
         transaction.amount = data.get("amount", transaction.amount)
         transaction_date_str = data.get("transaction_date")
         if transaction_date_str:
