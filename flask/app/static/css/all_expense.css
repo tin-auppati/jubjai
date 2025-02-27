@@ -159,3 +159,13 @@ body {
 .floating-btn:hover {
     transform: scale(1.1);
 }
+
+.red-amount {
+    color: red;
+    font-weight: bold;
+}
+
+.green-amount {
+    color: green;
+    font-weight: bold;
+}

@@ -593,6 +593,26 @@ def delete_transaction(transaction_id):
     db.session.commit()
     return jsonify({"success": True})
 
+@app.route('/edit_transaction/<int:transaction_id>', methods=['POST'])
+@login_required
+def edit_transaction(transaction_id):
+    transaction = Transaction.query.get(transaction_id)
+    if not transaction:
+        return jsonify({"success": False, "message": "Transaction not found"}), 404
+    data = request.get_json()
+    try:
+        # Update fields with provided data
+        transaction.amount = data.get("amount", transaction.amount)
+        transaction_date_str = data.get("transaction_date")
+        if transaction_date_str:
+            transaction.transaction_date = datetime.strptime(transaction_date_str, '%Y-%m-%d').date()
+        transaction.description = data.get("description", transaction.description)
+        transaction.date_updated = datetime.now()
+        db.session.commit()
+        return jsonify({"success": True, "message": "Transaction updated successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 
