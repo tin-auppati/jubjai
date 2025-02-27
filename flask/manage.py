@@ -51,6 +51,7 @@ def seed_db():
         user_id=user.id,
         icon_url="https://cdn-icons-png.flaticon.com/512/1046/1046857.png",
         description="Transactions on food and dining",
+        transaction_type="expense",
         monthly_limit=500.00
     )
     
@@ -60,6 +61,7 @@ def seed_db():
     category_income = Category(
         name="Income",
         user_id=user.id,
+        transaction_type = "income",
         icon_url="https://cdn-icons-png.flaticon.com/512/123/123123.png",
         description="Income",
     )

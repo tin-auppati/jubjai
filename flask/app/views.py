@@ -16,6 +16,7 @@ from datetime import datetime
 from decimal import Decimal
 import os
 from sqlalchemy import func, extract
+from datetime import timedelta
 
 from app.models.contact import Contact
 from app.models.jubjai import User,Category,Transaction
@@ -497,24 +498,20 @@ def create_transactions():
             if monthly_sum > category.monthly_limit:
                 flash(f"Alert: You have exceeded the monthly limit for {category.name}.", "warning")
 
-        return redirect(url_for('create_transactions'))
+        return redirect(url_for('create_transactions', transaction_type=transaction_type))
     else:
-        categories = Category.query.all()
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        # Get the transaction_type from the query string, defaulting to "expense"
+        # Get the transaction type from the query string, defaulting to "expense"
         transaction_type_default = request.args.get('transaction_type', 'expense')
-        return render_template('transactions.html', categories=categories, current_date=current_date, transaction_type_default=transaction_type_default)
-
-@login_required
-@app.route('/all_expenses')
-def all_expenses():
-    
-    expenses = Transaction.query.filter_by(transaction_type="expense").all()
-    expense_categories = [
-        (expense, Category.query.get(expense.category_id))
-        for expense in expenses
-    ]
-    return render_template('all_expenses.html', expenses = expenses,expense_categories=expense_categories)
+        # Filter categories by the transaction type and that are not deleted
+        categories = Category.query.filter_by(
+            transaction_type=transaction_type_default,
+            is_deleted=False
+        ).all()
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        return render_template('transactions.html', 
+                               categories=categories, 
+                               current_date=current_date, 
+                               transaction_type_default=transaction_type_default)
 
 
 @app.route('/upload_icon', methods=['POST'])
@@ -543,6 +540,62 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/all_transactions')
+@login_required
+def all_transactions():
+    transaction_type = request.args.get('transaction_type', 'all')
+    filter_type = request.args.get('filter', 'month')
+    date_str = request.args.get('date')
+    
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.today().date()
+    except ValueError:
+        selected_date = datetime.today().date()
+
+    # Exclude soft-deleted transactions
+    query = Transaction.query.filter(Transaction.is_deleted == False)
+
+    if transaction_type != "all":
+        query = query.filter(Transaction.transaction_type == transaction_type)
+
+    # Date Filtering
+    if filter_type == 'day':
+        query = query.filter(Transaction.transaction_date == selected_date)
+    elif filter_type == 'week':
+        start_week = selected_date - timedelta(days=selected_date.weekday())
+        end_week = start_week + timedelta(days=6)
+        query = query.filter(Transaction.transaction_date.between(start_week, end_week))
+    elif filter_type == 'month':
+        query = query.filter(
+            extract('year', Transaction.transaction_date) == selected_date.year,
+            extract('month', Transaction.transaction_date) == selected_date.month
+        )
+    elif filter_type == 'year':
+        query = query.filter(extract('year', Transaction.transaction_date) == selected_date.year)
+
+    transactions = query.all()
+    # Note: Using transaction.transaction_id instead of transaction.id
+    transaction_list = [(t, Category.query.get(t.category_id)) for t in transactions]
+
+    current_date = datetime.today().strftime('%Y-%m-%d')
+    return render_template('all_transactions.html',
+                           transactions=transaction_list,
+                           transaction_type=transaction_type,
+                           current_date=current_date)
+
+@app.route('/delete_transaction/<int:transaction_id>', methods=['POST'])
+@login_required
+def delete_transaction(transaction_id):
+    transaction = Transaction.query.get(transaction_id)
+    if not transaction:
+        return jsonify({"success": False, "message": "Transaction not found"}), 404
+    transaction.is_deleted = True  # Soft delete
+    db.session.commit()
+    return jsonify({"success": True})
+
+
+
+
 @login_required
 @app.route('/homepage')
 def homepage():
@@ -553,13 +606,4 @@ def homepage():
 def report():
     return render_template('report.html')
 
-@login_required
-@app.route('/all_incomes')
-def all_incomes():
-    incomes = Transaction.query.filter_by(transaction_type="income").all()
-    income_categories = [
-        (income, Category.query.get(income.category_id))
-        for income in incomes
-    ]
-    return render_template('all_incomes.html', incomes = incomes,income_categories=income_categories)
 
