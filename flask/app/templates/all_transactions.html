@@ -39,7 +39,19 @@
             <li>
                 <a href="{{ url_for('all_transactions') }}" title="All Transactions">
                     <span class="icon"><i class="bi bi-clipboard2-fill"></i></span>
-                    <span class="text">Transactions</span>
+                    <span class="text">Transaction</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('create_transactions', transaction_type='income') }}" title="Income">
+                    <span class="icon"><i class="bi bi-graph-up"></i></span>
+                    <span class="text">Income</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('create_transactions', transaction_type='expense') }}" title="Expense">
+                    <span class="icon"><i class="bi bi-graph-down"></i></span>
+                    <span class="text">Expense</span>
                 </a>
             </li>
             <li>
@@ -159,8 +171,10 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item edit-transaction" href="#" data-id="{{ transaction.transaction_id }}"
-                                        data-amount="{{ transaction.amount }}" data-date="{{ transaction.transaction_date.strftime('%Y-%m-%d') }}"
+                                    <a class="dropdown-item edit-transaction" href="#"
+                                        data-id="{{ transaction.transaction_id }}"
+                                        data-amount="{{ transaction.amount }}"
+                                        data-date="{{ transaction.transaction_date.strftime('%Y-%m-%d') }}"
                                         data-description="{{ transaction.description }}">
                                         <i class="bi bi-pencil"></i> Edit
                                     </a>
