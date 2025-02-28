@@ -21,7 +21,8 @@ from datetime import timedelta
 from app.models.contact import Contact
 from app.models.jubjai import User,Category,Transaction
 from flask import send_from_directory
-import calendar
+import calendar as cal
+from datetime import datetime, date
 from sqlalchemy.orm import joinedload
 
 
@@ -690,7 +691,7 @@ def report():
         date_range = (start_week, end_week)
     elif filter_type == 'month':
         start_date = selected_date.replace(day=1)
-        last_day = calendar.monthrange(selected_date.year, selected_date.month)[1]
+        last_day = cal.monthrange(selected_date.year, selected_date.month)[1]
         end_date = selected_date.replace(day=last_day)
         date_range = (start_date, end_date)
     elif filter_type == 'year':
@@ -728,11 +729,47 @@ def report():
 def Budgets():
     return render_template('budgets.html')
 
+
 @login_required
-@app.route('/Calendar')
+@app.route('/Calendar', methods=['GET'])
 def Calendar():
-    return render_template('Calendar.html')
-    
+    if request.args.get('type') == 'transactions':
+        try:
+            year = int(request.args.get('year'))
+            month = int(request.args.get('month'))
+            day = request.args.get('day')
+
+            if day:  # กรณีขอข้อมูลรายวัน
+                date_obj = date(year, month, int(day))
+                transactions = Transaction.query.filter(
+                    Transaction.user_id == current_user.id,
+                    Transaction.transaction_date == date_obj
+                ).all()
+                
+                return jsonify({
+                    'date': date_obj.isoformat(),
+                    'transactions': [t.to_dict() for t in transactions]
+                })
+                
+            else:  # กรณีขอข้อมูลทั้งเดือน
+                start_date = date(year, month, 1)
+                end_date = date(year, month, cal.monthrange(year, month)[1])
+                
+                transactions = Transaction.query.filter(
+                    Transaction.user_id == current_user.id,
+                    Transaction.transaction_date.between(start_date, end_date)
+                ).all()
+                
+                return jsonify([t.to_dict() for t in transactions])
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
+
+    today = datetime.today()
+    return render_template('calendar.html',
+                           current_year=today.year,
+                           current_month=today.month)
+
 @app.route('/categories_management')
 @login_required
 def categories_management():
