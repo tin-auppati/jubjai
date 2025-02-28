@@ -589,17 +589,38 @@ def all_transactions():
 
     transactions = query.all()
 
-    # Make sure the category is also owned by the user.
+    # Pair each transaction with its Category
     transaction_list = [
         (t, Category.query.filter_by(category_id=t.category_id, user_id=current_user.id).first())
         for t in transactions
     ]
 
+    # --- Calculate Totals ---
+    total_expense = 0
+    total_income = 0
+
+    for t, cat in transaction_list:
+        if t.transaction_type == 'expense':
+            total_expense += t.amount
+        elif t.transaction_type == 'income':
+            total_income += t.amount
+
+    # net_total = total_income - total_expense (if you want a net figure)
+    net_total = total_income - total_expense
+
+    # If you prefer 0.00 in case no transactions exist, you can ensure formatting in the template.
+
     current_date = datetime.today().strftime('%Y-%m-%d')
-    return render_template('all_transactions.html',
-                           transactions=transaction_list,
-                           transaction_type=transaction_type,
-                           current_date=current_date)
+
+    return render_template(
+        'all_transactions.html',
+        transactions=transaction_list,
+        transaction_type=transaction_type,
+        current_date=current_date,
+        total_expense=total_expense,
+        total_income=total_income,
+        net_total=net_total
+    )
 
 @app.route('/delete_transaction/<int:transaction_id>', methods=['POST'])
 @login_required
@@ -712,11 +733,59 @@ def Budgets():
 def Calendar():
     return render_template('Calendar.html')
     
+@app.route('/categories_management')
 @login_required
-@app.route('/Categories_management')
-def Categories_management():
-    return render_template('Categories_management.html')
+def categories_management():
+    # Possible values: "income", "expense", or None if no filter is applied
+    transaction_type = request.args.get('transaction_type')
 
+    query = Category.query.filter(
+        Category.is_deleted == False,
+        Category.user_id == current_user.id
+    )
+
+    # Filter if a specific transaction_type is requested
+    if transaction_type in ['income', 'expense']:
+        query = query.filter(Category.transaction_type == transaction_type)
+
+    categories = query.all()
+
+    return render_template(
+        'categories_management.html',
+        categories=categories,
+        transaction_type=transaction_type
+    )
+
+
+@app.route('/delete_category/<int:category_id>', methods=['POST'])
+@login_required
+def delete_category(category_id):
+    category = Category.query.get(category_id)
+    if not category or category.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Category not found or access denied"}), 404
+    category.is_deleted = True  # Soft delete the category
+    db.session.commit()
+    return jsonify({"success": True})
+
+@app.route('/edit_category/<int:category_id>', methods=['POST'])
+@login_required
+def edit_category(category_id):
+    category = Category.query.get(category_id)
+    if not category or category.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Category not found or access denied"}), 404
+
+    data = request.get_json()
+    try:
+        category.name = data.get("name", category.name)
+        category.transaction_type = data.get("transaction_type", category.transaction_type)
+        category.description = data.get("description", category.description)
+        category.icon_url = data.get("icon_url", category.icon_url)
+        category.date_updated = datetime.now()
+        db.session.commit()
+        return jsonify({"success": True, "message": "Category updated successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 

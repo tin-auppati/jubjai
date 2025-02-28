@@ -65,13 +65,14 @@
           <span class="text">Calendar</span>
         </a>
       </li>
-      <li>
-        <a href="{{ url_for('Categories_management') }}" title="Categories_management">
-          <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
-          <span class="text">Categories_management</span>
-        </a>
-      </li>
+      
       <div class="bottom">
+        <li>
+          <a href="{{ url_for('categories_management') }}" title="Categories Management">
+            <span class="icon"><i class="bi bi-card-list"></i></span>
+            <span class="text">Categories<br>Management</span>
+          </a>
+        </li>
         <li>
           <a href="{{ url_for('users_logout') }}" title="Logout">
             <span class="icon"><i class="bi bi-box-arrow-left"></i></span>

@@ -64,6 +64,12 @@
             </li>
             <div class="bottom">
                 <li>
+                    <a href="{{ url_for('categories_management') }}" title="Categories Management">
+                        <span class="icon"><i class="bi bi-card-list"></i></span>
+                        <span class="text">Categories<br>Management</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ url_for('users_logout') }}" title="Logout">
                         <span class="icon"><i class="bi bi-box-arrow-left"></i></span>
                         <span class="text">Logout</span>
@@ -134,7 +140,39 @@
                 </div>
             </div>
         </div>
-
+        <div class="row mb-3">
+            <div class="col text-end">
+                {% if transaction_type == 'all' %}
+                <strong class="me-4">
+                    Total Expenses:
+                    <span class="text-danger">- ฿{{ "{:,.2f}".format(total_expense) }}</span>
+                </strong>
+                <strong class="me-4">
+                    Total Incomes:
+                    <span class="text-success">+ ฿{{ "{:,.2f}".format(total_income) }}</span>
+                </strong>
+                <strong>
+                    Net:
+                    <!-- net_total could be positive or negative -->
+                    {% if net_total >= 0 %}
+                    <span class="text-success">+ ฿{{ "{:,.2f}".format(net_total) }}</span>
+                    {% else %}
+                    <span class="text-danger">- ฿{{ "{:,.2f}".format(net_total) }}</span>
+                    {% endif %}
+                </strong>
+                {% elif transaction_type == 'expense' %}
+                <strong>
+                    Total Expenses:
+                    <span class="text-danger">- ฿{{ "{:,.2f}".format(total_expense) }}</span>
+                </strong>
+                {% elif transaction_type == 'income' %}
+                <strong>
+                    Total Incomes:
+                    <span class="text-success">+ ฿{{ "{:,.2f}".format(total_income) }}</span>
+                </strong>
+                {% endif %}
+            </div>
+        </div>
         <!-- Transaction Table -->
         <table class="expense-table">
             <thead>
