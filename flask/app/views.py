@@ -589,17 +589,38 @@ def all_transactions():
 
     transactions = query.all()
 
-    # Make sure the category is also owned by the user.
+    # Pair each transaction with its Category
     transaction_list = [
         (t, Category.query.filter_by(category_id=t.category_id, user_id=current_user.id).first())
         for t in transactions
     ]
 
+    # --- Calculate Totals ---
+    total_expense = 0
+    total_income = 0
+
+    for t, cat in transaction_list:
+        if t.transaction_type == 'expense':
+            total_expense += t.amount
+        elif t.transaction_type == 'income':
+            total_income += t.amount
+
+    # net_total = total_income - total_expense (if you want a net figure)
+    net_total = total_income - total_expense
+
+    # If you prefer 0.00 in case no transactions exist, you can ensure formatting in the template.
+
     current_date = datetime.today().strftime('%Y-%m-%d')
-    return render_template('all_transactions.html',
-                           transactions=transaction_list,
-                           transaction_type=transaction_type,
-                           current_date=current_date)
+
+    return render_template(
+        'all_transactions.html',
+        transactions=transaction_list,
+        transaction_type=transaction_type,
+        current_date=current_date,
+        total_expense=total_expense,
+        total_income=total_income,
+        net_total=net_total
+    )
 
 @app.route('/delete_transaction/<int:transaction_id>', methods=['POST'])
 @login_required
