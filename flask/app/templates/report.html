@@ -34,9 +34,27 @@
         </a>
       </li>
       <li>
-        <a href="{{ url_for('report') }}" title="Report">
+        <a href="{{ url_for('Budgets') }}" title="Budgets">
           <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
-          <span class="text">Report</span>
+          <span class="text">Budgets</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('report') }}" title="Charts">
+          <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
+          <span class="text">Charts</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('Calendar') }}" title="Calendar">
+          <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
+          <span class="text">Calendar</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('Categories_management') }}" title="Categories_management">
+          <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
+          <span class="text">Categories_management</span>
         </a>
       </li>
       <div class="bottom">
@@ -53,18 +71,30 @@
   <!-- Main Content -->
   <div class="main-content">
     <!-- ฟอร์มสำหรับกรองข้อมูล (ถ้าต้องการ) -->
-    <div class="row mb-3">
-      <div class="container">
-        <div class="row">
-          <div class="col-1 d-flex align-items-end">
-            <h5>Date</h5>
-          </div>
-          <div class="col">
-            <input type="date" class="form-control" id="date" name="date" value="{{ current_date }}" required>
-          </div>
-        </div>
+    <div class="col-md-6 d-flex">
+      <form method="get" action="{{ url_for('report') }}" class="d-flex align-items-center" id="dateFilterForm">
+          <select name="filter" id="filter" class="form-select me-2" style="width: auto;">
+              <option value="day" {% if request.args.get('filter', 'day' )=='day' %}selected{% endif %}>Day</option>
+              <option value="week" {% if request.args.get('filter', 'day' )=='week' %}selected{% endif %}>Week</option>
+              <option value="month" {% if request.args.get('filter', 'day' )=='month' %}selected{% endif %}>Month</option>
+              <option value="year" {% if request.args.get('filter', 'day' )=='year' %}selected{% endif %}>Year</option>
+          </select>
+          <button type="button" class="btn btn-light me-2" id="prevDate">
+              <i class="bi bi-chevron-left"></i>
+          </button>
+          <input type="date" name="date" id="date" class="form-control me-2" style="width: auto;"
+              value="{{ request.args.get('date', current_date) }}">
+          <button type="button" class="btn btn-light me-2" id="nextDate">
+              <i class="bi bi-chevron-right"></i>
+          </button>
+      </form>
+  </div>
+  <div class="row">
+      <div class="col">
+          <small id="dateRangeDisplay" class="text-muted"></small>
       </div>
-    </div>
+  </div>
+  
 
     <div class="row mb-3">
       <div class="col-12 filter-form">
@@ -101,18 +131,84 @@
 
     <!-- ส่วนที่จะแสดงกราฟ -->
     <div class="row">
-      <div class="col-12">
+      <div class="col-12 chart-container">
         <canvas id="myChart"></canvas>
-        <div id="transactionSummary"></div>
       </div>
     </div>
   </div>
 
   <!-- ส่งข้อมูลรายการธุรกรรมจากฐานข้อมูลไปยัง JavaScript -->
   <script>
-    // transactions นี้จะเป็น array ของ dict ที่มี key transaction กับ category
-    const transactions = {{ transactions | tojson }};
-  </script>
+    const transactions = {{ transactions | tojson | safe }};
+    console.log(transactions);
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function updateRangeDisplay() {
+        const filterType = document.getElementById("filter").value;
+        const dateInput = document.getElementById("date");
+        const displayEl = document.getElementById("dateRangeDisplay");
+        let currentDate = new Date(dateInput.value);
+        let startDate, endDate;
+
+        if (filterType === "day") {
+            startDate = new Date(currentDate);
+            endDate = new Date(currentDate);
+        } else if (filterType === "week") {
+            const day = currentDate.getDay();
+            const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1);
+            startDate = new Date(currentDate);
+            startDate.setDate(diff);
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+        } else if (filterType === "month") {
+            startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        } else if (filterType === "year") {
+            startDate = new Date(currentDate.getFullYear(), 0, 1);
+            endDate = new Date(currentDate.getFullYear(), 11, 31);
+        }
+
+        displayEl.textContent = `Showing transactions from ${formatLocalDate(startDate)} to ${formatLocalDate(endDate)}`;
+    }
+
+    function adjustDate(increment) {
+        const filterType = document.getElementById("filter").value;
+        const dateInput = document.getElementById("date");
+        let currentDate = new Date(dateInput.value);
+
+        if (filterType === "day") {
+            currentDate.setDate(currentDate.getDate() + increment);
+        } else if (filterType === "week") {
+            currentDate.setDate(currentDate.getDate() + (7 * increment));
+        } else if (filterType === "month") {
+            currentDate.setMonth(currentDate.getMonth() + increment);
+        } else if (filterType === "year") {
+            currentDate.setFullYear(currentDate.getFullYear() + increment);
+        }
+
+        dateInput.value = formatLocalDate(currentDate);
+        updateRangeDisplay();
+    }
+
+    // ผูก Event Listeners
+    document.getElementById("prevDate").addEventListener("click", () => adjustDate(-1));
+    document.getElementById("nextDate").addEventListener("click", () => adjustDate(1));
+    document.getElementById("date").addEventListener("change", updateRangeDisplay);
+    document.getElementById("filter").addEventListener("change", updateRangeDisplay);
+    
+    // อัพเดทแสดงผลครั้งแรก
+    updateRangeDisplay();
+});
+</script>
 
   <!-- JavaScript สำหรับ Chart.js -->
   <script>
@@ -126,7 +222,7 @@
 
     const categoryTotals = {};
     filtered.forEach(t => {
-        const category = t.category && t.category.name ? t.category.name : 'Other';
+      const category = t.category?.name || 'Other';
         if (!categoryTotals[category]) {
             categoryTotals[category] = 0;
         }
@@ -183,46 +279,34 @@ document.getElementById('showReportBtn').addEventListener('click', showReport);
     });
 
     const selectedDate = document.getElementById('date').value;
-
-    if (selectedTransactionType.toLowerCase() === 'expenses') {
-        selectedTransactionType = 'expense';
-    }
-
     let filtered = data;
 
     if (selectedTransactionType !== 'Both') {
-        filtered = filtered.filter(t => t.transaction.transaction_type.toLowerCase() === selectedTransactionType.toLowerCase());
+      filtered = filtered.filter(t => t.transaction_type.toLowerCase() === selectedTransactionType.toLowerCase());
     }
 
     if (selectedDate) {
-        filtered = filtered.filter(t => t.transaction.transaction_date === selectedDate);
+        filtered = filtered.filter(t => t.transaction_date === selectedDate);
     }
 
     return { filtered, chartType, transactionType: selectedTransactionType };
 }
 
-
-  
-    // ฟังก์ชันสำหรับรวมยอดตาม Category
-    function groupByCategory(transactions) {
-      const map = {};
-      transactions.forEach((t) => {
-        // ใช้ข้อมูล category จาก key "category"
-        const catName = t.category && t.category.name ? t.category.name : 'Other';
-        if (!map[catName]) {
-          map[catName] = 0;
-        }
-        // ใช้ t.transaction.amount แทน t.amount
-        map[catName] += parseFloat(t.transaction.amount);
-      });
-      return map;
-    }
+function groupByCategory(transactions) {
+  const map = {};
+  transactions.forEach((t) => {
+    // ใช้ข้อมูล category จาก field ที่ map มา
+    const catName = t.category?.name || 'Other'; 
+    if (!map[catName]) map[catName] = 0;
+    map[catName] += parseFloat(t.amount);
+  });
+  return map;
+}
   
     // ฟังก์ชันสำหรับสร้างหรืออัปเดต Chart
     function renderChart(chartType, labels, data) {
-  if (myChart) {
-    myChart.destroy();
-  }
+  if (myChart) myChart.destroy();
+  
   const ctx = document.getElementById('myChart').getContext('2d');
   myChart = new Chart(ctx, {
     type: chartType,
@@ -242,12 +326,11 @@ document.getElementById('showReportBtn').addEventListener('click', showReport);
       maintainAspectRatio: false,
       plugins: {
         legend: { position: 'top' },
-        title: { display: true, text: chartType.toUpperCase() + ' Chart' }
-      },
-      layout: {
-        padding: { left: 10, right: 10, top: 10, bottom: 10 }
-      },
-      scales: chartType === 'bar' ? { y: { beginAtZero: true } } : {}
+        title: { 
+          display: true, 
+          text: `${document.getElementById('chartType').value.toUpperCase()} Chart - ${document.querySelector('input[name="transactionType"]:checked').value.toUpperCase()}`
+        }
+      }
     }
   });
 }

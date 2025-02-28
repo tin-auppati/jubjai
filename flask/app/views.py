@@ -21,6 +21,8 @@ from datetime import timedelta
 from app.models.contact import Contact
 from app.models.jubjai import User,Category,Transaction
 from flask import send_from_directory
+import calendar
+from sqlalchemy.orm import joinedload
 
 
 @app.route('/')
@@ -636,27 +638,85 @@ def edit_transaction(transaction_id):
 def homepage():
     return render_template('homepage.html')
 
+def get_user_transactions(user_id, start_date=None, end_date=None):
+    query = Transaction.query.filter(
+        Transaction.user_id == user_id,
+        Transaction.is_deleted == False
+    )
+    
+    if start_date and end_date:
+        query = query.filter(Transaction.transaction_date.between(start_date, end_date))
+    
+    return query.all()
+
 @app.route('/report')
 @login_required
 def report():
-    transactions = get_user_transactions(current_user.id)
-    return render_template("report.html", transactions=transactions, current_date=datetime.now().strftime('%Y-%m-%d'))
+    filter_type = request.args.get('filter', 'month')
+    date_str = request.args.get('date')
+    
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.today().date()
+    except ValueError:
+        selected_date = datetime.today().date()
+
+    # Calculate date range
+    if filter_type == 'day':
+        date_range = (selected_date, selected_date)
+    elif filter_type == 'week':
+        start_week = selected_date - timedelta(days=selected_date.weekday())
+        end_week = start_week + timedelta(days=6)
+        date_range = (start_week, end_week)
+    elif filter_type == 'month':
+        start_date = selected_date.replace(day=1)
+        last_day = calendar.monthrange(selected_date.year, selected_date.month)[1]
+        end_date = selected_date.replace(day=last_day)
+        date_range = (start_date, end_date)
+    elif filter_type == 'year':
+        date_range = (selected_date.replace(month=1, day=1), selected_date.replace(month=12, day=31))
+    else:
+        date_range = (selected_date, selected_date)
+    
+    # ดึงข้อมูลธุรกรรมจากฐานข้อมูล
+    start_date, end_date = date_range
+    # ดึงข้อมูลธุรกรรมจากฐานข้อมูล (ไม่ใช้ joinedload)
+    transactions_db = get_user_transactions(current_user.id, start_date, end_date)
+    
+    # ดึง category_ids ทั้งหมดจากธุรกรรม
+    category_ids = {t.category_id for t in transactions_db}
+    
+    # Query หา categories ที่เกี่ยวข้อง
+    categories = Category.query.filter(Category.category_id.in_(category_ids)).all()
+    category_map = {c.category_id: c.to_dict() for c in categories}
+    
+    # แปลงข้อมูล transaction พร้อม map category เข้าไป
+    transactions = []
+    for t in transactions_db:
+        transaction_data = t.to_dict()
+        transaction_data['category'] = category_map.get(t.category_id, {})
+        transactions.append(transaction_data)
+    
+    return render_template("report.html", 
+                           transactions=transactions,
+                           filter_type=filter_type, 
+                           date_range=date_range, 
+                           current_date=datetime.today().strftime('%Y-%m-%d'))
+
+@login_required
+@app.route('/budgets')
+def Budgets():
+    return render_template('budgets.html')
+
+@login_required
+@app.route('/Calendar')
+def Calendar():
+    return render_template('Calendar.html')
+    
+@login_required
+@app.route('/Categories_management')
+def Categories_management():
+    return render_template('Categories_management.html')
 
 
-
-def get_user_transactions(user_id):
-    """
-    ดึงรายการธุรกรรมของผู้ใช้ที่ระบุ (ที่ยังไม่ถูกลบ) พร้อมกับข้อมูล category
-    คืนค่าเป็น list ของ dict ที่มี key 'transaction' และ 'category'
-    """
-    transactions = Transaction.query.filter_by(user_id=user_id, is_deleted=False).order_by(Transaction.transaction_date.desc()).all()
-    transaction_list = []
-    for t in transactions:
-        category = Category.query.filter_by(category_id=t.category_id, user_id=user_id).first()
-        transaction_list.append({
-            "transaction": t.to_dict(),
-            "category": category.to_dict() if category else None
-        })
-    return transaction_list
 
 
