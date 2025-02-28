@@ -26,8 +26,10 @@
         <ul>
             <li>
                 <a href="{{ url_for('users_profile') }}" title="Profile">
-                    <span class="icon"><i class="bi bi-person-circle"></i></span>
-                    <span class="text">Profile</span>
+                    <span class="icon" id="sidebarProfileIcon">
+                        <img src="{{ current_user.avatar_url}}"
+                             alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                    </span>
                 </a>
             </li>
             <li>

@@ -22,8 +22,10 @@
         <ul>
             <li>
                 <a href="{{ url_for('users_profile') }}" title="Profile">
-                    <span class=icon><i class="bi bi-person-circle"></i></span>
-                    <span class="text">Profile</span>
+                    <span class="icon" id="sidebarProfileIcon">
+                        <img src="{{ current_user.avatar_url}}"
+                             alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                    </span>
                 </a>
             </li>
             <li>
@@ -71,9 +73,10 @@
     <div class="profile-container">
         <form action="{{ url_for('upload_profile') }}" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div class="profile-image" id="profileImage" style="background-image: url('{{ profile_image }}');">
-                <span class="plus-icon">+</span>
-                <input type="file" name="file" id="upload" accept="image/*" onchange="this.form.submit()">
+            <div class="profile-image" id="profileImage" 
+                 style="background-image: url('{{ current_user.avatar_url if current_user.avatar_url else profile_image }}');">
+                <span class="plus-icon" id="plusSign">+</span>
+                <input type="file" name="file" id="upload" accept="image/*">
             </div>
         </form>
         
@@ -83,26 +86,48 @@
 
   <script>
     // add image profile and side bar profile
-    const uploadInput = document.getElementById('upload');
-    const profileImage = document.getElementById('profileImage');
-    const sidebarProfileIcon = document.getElementById('sidebarProfileIcon');
+    document.addEventListener("DOMContentLoaded", function () {
+    const uploadInput = document.getElementById("upload");
+    const profileImage = document.getElementById("profileImage");
+    const sidebarProfileIcon = document.getElementById("sidebarProfileIcon");
+    const plusSign = document.getElementById("plusSign");
 
-    uploadInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const imageUrl = event.target.result;
-        profileImage.style.backgroundImage = `url(${imageUrl})`;
-        document.querySelector('.plus-icon').style.display = 'none';
-        sidebarProfileIcon.innerHTML = `<img src="${imageUrl}" alt="Profile" style="width:40px; height:40px; border-radius:50%;">`;
-
-        // record to localStorage
-        localStorage.setItem('profileImage', imageUrl);
-      }
-      reader.readAsDataURL(file);
+    // ซ่อน "+" ถ้ามีรูปอยู่แล้ว
+    if (profileImage.style.backgroundImage !== 'none') {
+        plusSign.style.display = "none";
     }
-  });
+
+    uploadInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const imageUrl = event.target.result;
+                
+                // อัปเดตรูปโปรไฟล์
+                profileImage.style.backgroundImage = `url(${imageUrl})`;
+                plusSign.style.display = "none";
+
+                // อัปเดตรูปที่ Sidebar
+                sidebarProfileIcon.innerHTML = `<img src="${imageUrl}" 
+                                                alt="Profile" style="width:40px; height:40px; border-radius:50%;">`;
+
+                // บันทึกลง localStorage
+                localStorage.setItem("profileImage", imageUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // โหลดค่าจาก localStorage (กันรูปหายหลังรีโหลด)
+    const storedImage = localStorage.getItem("profileImage");
+    if (storedImage) {
+        profileImage.style.backgroundImage = `url(${storedImage})`;
+        plusSign.style.display = "none";
+        sidebarProfileIcon.innerHTML = `<img src="${storedImage}" 
+                                        alt="Profile" style="width:40px; height:40px; border-radius:50%;">`;
+    }
+});
   </script>
 
   <!-- Optional Bootstrap JS -->
