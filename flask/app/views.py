@@ -19,7 +19,7 @@ from sqlalchemy import func, extract
 from datetime import timedelta
 
 from app.models.contact import Contact
-from app.models.jubjai import User,Category,Transaction
+from app.models.jubjai import User,Category,Transaction,Budget
 from flask import send_from_directory
 import calendar as cal
 from datetime import datetime, date
@@ -149,6 +149,29 @@ def view_jubjai_transactions():
     entries_json = [entry.to_dict() for entry in users]
     return jsonify(entries_json)
 
+@app.route('/jubjai_budgets_db')
+def view_jubjai_budgets():
+        
+    query = Budget.query
+    is_deleted_param = request.args.get('is_deleted')
+    if is_deleted_param is not None:
+        # Convert the parameter to a boolean.
+        if is_deleted_param.lower() in ('true', '1', 'yes'):
+            is_deleted_value = True
+        else:
+            is_deleted_value = False
+        query = query.filter_by(is_deleted=is_deleted_value)
+
+    # Optional ordering: default is descending by date_updated.
+    order = request.args.get('order', 'desc').lower()
+    if order == 'asc':
+        query = query.order_by(Budget.date_updated.asc())
+    else:
+        query = query.order_by(Budget.date_updated.desc())
+
+    users = query.all()
+    entries_json = [entry.to_dict() for entry in users]
+    return jsonify(entries_json)
 
 @app.route('/users')
 def users_index():
@@ -495,6 +518,9 @@ def create_transactions():
         db.session.add(new_transaction)
         db.session.commit()
 
+        update_budget_amount(current_user.id, category_id, transaction_date)
+        db.session.commit() 
+
         # Monthly Limit Alert Code...
         # category is already fetched above and is verified to belong to current_user
         if category and category.monthly_limit:
@@ -631,7 +657,10 @@ def delete_transaction(transaction_id):
         return jsonify({"success": False, "message": "Transaction not found or access denied"}), 404
     transaction.is_deleted = True  # Soft delete
     db.session.commit()
+    update_budget_amount(transaction.user_id, transaction.category_id, transaction.transaction_date)
+    db.session.commit() 
     return jsonify({"success": True})
+
 
 @app.route('/edit_transaction/<int:transaction_id>', methods=['POST'])
 @login_required
@@ -649,6 +678,8 @@ def edit_transaction(transaction_id):
         transaction.description = data.get("description", transaction.description)
         transaction.date_updated = datetime.now()
         db.session.commit()
+        update_budget_amount(transaction.user_id, transaction.category_id, transaction.transaction_date)
+        db.session.commit() 
         return jsonify({"success": True, "message": "Transaction updated successfully"})
     except Exception as e:
         db.session.rollback()
@@ -723,12 +754,6 @@ def report():
                            filter_type=filter_type, 
                            date_range=date_range, 
                            current_date=datetime.today().strftime('%Y-%m-%d'))
-
-@login_required
-@app.route('/budgets')
-def Budgets():
-    return render_template('budgets.html')
-
 
 @login_required
 @app.route('/Calendar', methods=['GET'])
@@ -826,3 +851,82 @@ def edit_category(category_id):
 
 
 
+
+@login_required
+@app.route('/budgets')
+def budgets():
+    user_id = current_user.id
+    user_budgets = Budget.query.filter_by(user_id=user_id, is_deleted=False).order_by(Budget.date_updated.desc()).all()
+
+    categories = {}
+    
+    # ดึงเฉพาะ Category ที่มี monthly_limit
+    categories_with_limit = Category.query.filter_by(user_id=user_id).filter(Category.monthly_limit.isnot(None)).all()
+
+    new_budgets = []
+    for category in categories_with_limit:
+        if not Budget.query.filter_by(user_id=user_id, category_id=category.category_id, is_deleted=False).first():
+            new_budgets.append(Budget(
+                user_id=user_id,
+                category_id=category.category_id,
+                month=datetime.now().strftime('%Y-%m'),
+                date_created=datetime.now(),
+                date_updated=datetime.now()
+            ))
+
+        categories[category.category_id] = {
+            'name': category.name,
+            'icon_url': category.icon_url,
+            'monthly_limit': category.monthly_limit
+        }
+
+    if new_budgets:
+        db.session.add_all(new_budgets)
+        db.session.commit()
+
+    for budget in user_budgets:
+        if budget.category_id in categories:
+            category = categories[budget.category_id]
+            categories[budget.budget_id] = {
+                'name': category['name'],
+                'icon_url': category['icon_url']
+            }
+
+        start_date = datetime.strptime(budget.month, "%Y-%m")
+        end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
+        budget.start_of_month = start_date
+        budget.end_of_month = end_date
+
+    return render_template('budgets.html', budgets=user_budgets, categories=categories)
+
+
+def get_budget_amount(user_id, category_id, month):
+    start_date = datetime.strptime(month, "%Y-%m")
+    end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
+    
+    transactions = Transaction.query.filter(
+        Transaction.user_id == user_id,
+        Transaction.category_id == category_id,
+        Transaction.transaction_date >= start_date,
+        Transaction.transaction_date <= end_date,
+        Transaction.transaction_type == 'expense',
+        Transaction.is_deleted == False
+    ).all()
+
+    return sum(t.amount or 0 for t in transactions)
+
+
+def update_budget_amount(user_id, category_id, transaction_date):
+    budget = Budget.query.filter_by(user_id=user_id, category_id=category_id, is_deleted=False).first()
+
+    if budget:
+        budget.amount = get_expense_amount(user_id, category_id, budget.month)
+
+        start_date = datetime.strptime(budget.month, "%Y-%m")
+        end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
+
+        current_date = datetime.now().date()
+        if current_date >= end_date.date():
+            budget.is_deleted = True
+
+        db.session.commit()
