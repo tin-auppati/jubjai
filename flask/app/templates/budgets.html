@@ -105,10 +105,13 @@
             alt="{{ categories[budget.budget_id].name }} Icon">
           <div class="bar">
             <div class="row">
-              <div class="col">
+              <div class="col text-start">
                 <span class="start-date">{{ budget.start_of_month.strftime('%Y-%m-%d') }}</span>
               </div>
-              <div class="col">
+              <div class="col text-center">
+                <span class="amount">{{ (budget.amount / budget.monthly_limit) * 100 }} %</span>
+              </div>
+              <div class="col text-end">
                 <span class="end-date">{{ budget.end_of_month.strftime('%Y-%m-%d') }}</span>
               </div>
             </div>
@@ -118,10 +121,13 @@
               </div>
             </div>
             <div class="row">
-              <div class="col">
+              <div class="col text-start">
+                <span class="amount">0.00</span>
+              </div>
+              <div class="col text-center">
                 <span class="amount">{{ budget.amount }}</span>
               </div>
-              <div class="col">
+              <div class="col text-end">
                 <span class="budget">{{ budget.monthly_limit }}</span>
               </div>
             </div>

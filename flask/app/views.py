@@ -920,7 +920,7 @@ def update_budget_amount(user_id, category_id, transaction_date):
     budget = Budget.query.filter_by(user_id=user_id, category_id=category_id, is_deleted=False).first()
 
     if budget:
-        budget.amount = get_expense_amount(user_id, category_id, budget.month)
+        budget.amount = get_budget_amount(user_id, category_id, budget.month)
 
         start_date = datetime.strptime(budget.month, "%Y-%m")
         end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
