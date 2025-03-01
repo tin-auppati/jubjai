@@ -124,24 +124,32 @@
 
             <!-- Right side: Date Filter with Arrows -->
             <div class="col-md-6 d-flex justify-content-end">
-                <form method="get" action="{{ url_for('all_transactions') }}" class="d-flex align-items-center"
-                    id="dateFilterForm">
+                <form method="get" action="{{ url_for('all_transactions') }}" class="d-flex align-items-center" id="dateFilterForm">
                     <input type="hidden" name="transaction_type" value="{{ transaction_type }}">
                     <select name="filter" id="filter" class="form-select me-2" style="width: auto;">
-                        <option value="day" {% if request.args.get('filter', 'month' )=='day' %}selected{% endif %}>Day
+                        <option value="day" {% if request.args.get('filter', 'month' )=='day' %}selected{% endif %}>Day</option>
+                        <option value="week" {% if request.args.get('filter', 'month' )=='week' %}selected{% endif %}>Week</option>
+                        <option value="month" {% if request.args.get('filter', 'month' )=='month' %}selected{% endif %}>Month
                         </option>
-                        <option value="week" {% if request.args.get('filter', 'month' )=='week' %}selected{% endif %}>
-                            Week</option>
-                        <option value="month" {% if request.args.get('filter', 'month' )=='month' %}selected{% endif %}>
-                            Month</option>
-                        <option value="year" {% if request.args.get('filter', 'month' )=='year' %}selected{% endif %}>
-                            Year</option>
+                        <option value="year" {% if request.args.get('filter', 'month' )=='year' %}selected{% endif %}>Year</option>
+                        <option value="custom" {% if request.args.get('filter', 'month' )=='custom' %}selected{% endif %}>Custom
+                        </option>
                     </select>
+                    <!-- Single date input for non-custom filters -->
+                    <div id="singleDateInput" style="display: none;">
+                        <input type="date" name="date" id="date" class="form-control me-2" style="width: auto;"
+                            value="{{ request.args.get('date', current_date) }}">
+                    </div>
+                    <!-- Custom date inputs for start and end dates -->
+                    <div id="customDateInputs" style="display: none;">
+                        <input type="date" name="start_date" id="start_date" class="form-control me-2" style="width: auto;"
+                            placeholder="Start Date" value="{{ request.args.get('start_date', current_date) }}">
+                        <input type="date" name="end_date" id="end_date" class="form-control me-2" style="width: auto;"
+                            placeholder="End Date" value="{{ request.args.get('end_date', current_date) }}">
+                    </div>
                     <button type="button" class="btn btn-light me-2" id="prevDate">
                         <i class="bi bi-chevron-left"></i>
                     </button>
-                    <input type="date" name="date" id="date" class="form-control me-2" style="width: auto;"
-                        value="{{ request.args.get('date', current_date) }}">
                     <button type="button" class="btn btn-light me-2" id="nextDate">
                         <i class="bi bi-chevron-right"></i>
                     </button>
@@ -307,6 +315,26 @@
         });
 
         document.addEventListener("DOMContentLoaded", function () {
+            const filterSelect = document.getElementById("filter");
+            const singleDateInput = document.getElementById("singleDateInput");
+            const customDateInputs = document.getElementById("customDateInputs");
+            const dateInput = document.getElementById("date");
+
+            function toggleDateInputs() {
+                if (filterSelect.value === "custom") {
+                    customDateInputs.style.display = "flex";
+                    singleDateInput.style.display = "none";
+                } else {
+                    customDateInputs.style.display = "none";
+                    singleDateInput.style.display = "flex";
+                }
+            }
+
+            // Initialize the date inputs display based on the selected filter
+            toggleDateInputs();
+
+            // Change display when the filter option changes
+            filterSelect.addEventListener("change", toggleDateInputs);
             document.querySelectorAll(".delete-transaction").forEach(button => {
                 button.addEventListener("click", function (event) {
                     event.preventDefault();

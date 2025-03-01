@@ -18,14 +18,14 @@ import os
 from sqlalchemy import func, extract
 from datetime import timedelta
 
-from app.models.contact import Contact
-from app.models.jubjai import User,Category,Transaction,Budget
+from app.models.jubjai import User,Category,Transaction
 from flask import send_from_directory
 import calendar as cal
 from datetime import datetime, date
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import joinedload
 
-
+thai_tz = ZoneInfo('Asia/Bangkok')
 @app.route('/')
 def home():
     return "Flask says 'Hello world!'"
@@ -83,14 +83,12 @@ def view_jubjai_users():
     query = User.query
     is_deleted_param = request.args.get('is_deleted')
     if is_deleted_param is not None:
-        # Convert the parameter to a boolean.
         if is_deleted_param.lower() in ('true', '1', 'yes'):
             is_deleted_value = True
         else:
             is_deleted_value = False
         query = query.filter_by(is_deleted=is_deleted_value)
 
-    # Optional ordering: default is descending by date_updated.
     order = request.args.get('order', 'desc').lower()
     if order == 'asc':
         query = query.order_by(User.date_updated.asc())
@@ -107,14 +105,12 @@ def view_jubjai_catagories():
     query = Category.query
     is_deleted_param = request.args.get('is_deleted')
     if is_deleted_param is not None:
-        # Convert the parameter to a boolean.
         if is_deleted_param.lower() in ('true', '1', 'yes'):
             is_deleted_value = True
         else:
             is_deleted_value = False
         query = query.filter_by(is_deleted=is_deleted_value)
 
-    # Optional ordering: default is descending by date_updated.
     order = request.args.get('order', 'desc').lower()
     if order == 'asc':
         query = query.order_by(Category.date_updated.asc())
@@ -131,43 +127,17 @@ def view_jubjai_transactions():
     query = Transaction.query
     is_deleted_param = request.args.get('is_deleted')
     if is_deleted_param is not None:
-        # Convert the parameter to a boolean.
         if is_deleted_param.lower() in ('true', '1', 'yes'):
             is_deleted_value = True
         else:
             is_deleted_value = False
         query = query.filter_by(is_deleted=is_deleted_value)
 
-    # Optional ordering: default is descending by date_updated.
     order = request.args.get('order', 'desc').lower()
     if order == 'asc':
         query = query.order_by(Transaction.date_updated.asc())
     else:
         query = query.order_by(Transaction.date_updated.desc())
-
-    users = query.all()
-    entries_json = [entry.to_dict() for entry in users]
-    return jsonify(entries_json)
-
-@app.route('/jubjai_budgets_db')
-def view_jubjai_budgets():
-        
-    query = Budget.query
-    is_deleted_param = request.args.get('is_deleted')
-    if is_deleted_param is not None:
-        # Convert the parameter to a boolean.
-        if is_deleted_param.lower() in ('true', '1', 'yes'):
-            is_deleted_value = True
-        else:
-            is_deleted_value = False
-        query = query.filter_by(is_deleted=is_deleted_value)
-
-    # Optional ordering: default is descending by date_updated.
-    order = request.args.get('order', 'desc').lower()
-    if order == 'asc':
-        query = query.order_by(Budget.date_updated.asc())
-    else:
-        query = query.order_by(Budget.date_updated.desc())
 
     users = query.all()
     entries_json = [entry.to_dict() for entry in users]
@@ -407,13 +377,12 @@ def google_auth():
 @login_required
 def categories():
     if request.method == 'POST':
-        # Get form data
+        
         name = request.form.get('name')
         description = request.form.get('description')
         monthly_limit = request.form.get('monthly_limit')
         icon_url = request.form.get('icon_url')
         transaction_type = request.form.get('transaction_type')
-        # Convert monthly_limit to Decimal if provided
         
         try:
             monthly_limit = Decimal(monthly_limit) if monthly_limit else None
@@ -422,7 +391,7 @@ def categories():
 
         new_category = Category(
             name=name,
-            user_id=current_user.id,  # Make sure the user is logged in
+            user_id=current_user.id, 
             description=description,
             monthly_limit=monthly_limit,
             icon_url=icon_url,
@@ -432,7 +401,7 @@ def categories():
         db.session.commit()
         return redirect(url_for('create_transactions',transaction_type=transaction_type))
     else:
-        # Create a list of icons (30 icons, for example)
+        
         icon_list = [
             {"name": "Food", "url": "https://cdn-icons-png.flaticon.com/512/1046/1046857.png"},
             {"name": "Travel", "url": "https://cdn-icons-png.flaticon.com/512/2922/2922510.png"},
@@ -467,11 +436,126 @@ def categories():
         ]
         return render_template('categories.html', icon_list=icon_list)
 
+
+@app.route('/upload_icon', methods=['POST'])
+def upload_icon():
+    if 'file' not in request.files:
+        return jsonify(success=False, message="No file part in the request"), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify(success=False, message="No selected file"), 400
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+        
+        file_url = url_for('static', filename='uploads/' + filename, _external=True)
+        return jsonify(success=True, file_url=file_url)
+    else:
+        return jsonify(success=False, message="File type not allowed"), 400
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/all_transactions')
+@login_required
+def all_transactions():
+    transaction_type = request.args.get('transaction_type', 'all')
+    filter_type = request.args.get('filter', 'month')
+    date_str = request.args.get('date')
+    
+    try:
+        # Default selected_date is used for the standard filters
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.today().date()
+    except ValueError:
+        selected_date = datetime.today().date()
+
+    query = Transaction.query.filter(
+        Transaction.is_deleted == False,
+        Transaction.user_id == current_user.id
+    )
+
+    if transaction_type != "all":
+        query = query.filter(Transaction.transaction_type == transaction_type)
+
+    if filter_type == 'day':
+        query = query.filter(Transaction.transaction_date == selected_date)
+    elif filter_type == 'week':
+        start_week = selected_date - timedelta(days=selected_date.weekday())
+        end_week = start_week + timedelta(days=6)
+        query = query.filter(Transaction.transaction_date.between(start_week, end_week))
+    elif filter_type == 'month':
+        query = query.filter(
+            extract('year', Transaction.transaction_date) == selected_date.year,
+            extract('month', Transaction.transaction_date) == selected_date.month
+        )
+    elif filter_type == 'year':
+        query = query.filter(extract('year', Transaction.transaction_date) == selected_date.year)
+    elif filter_type == 'custom':
+        # Custom filter: get start_date and end_date from query parameters.
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        custom_start_date = None
+        custom_end_date = None
+
+        try:
+            if start_date_str:
+                custom_start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            if end_date_str:
+                custom_end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            # If conversion fails, default to today's date (or handle as needed)
+            custom_start_date = custom_start_date or datetime.today().date()
+            custom_end_date = custom_end_date or datetime.today().date()
+
+        if custom_start_date and custom_end_date:
+            query = query.filter(Transaction.transaction_date.between(custom_start_date, custom_end_date))
+        elif custom_start_date:
+            query = query.filter(Transaction.transaction_date >= custom_start_date)
+        elif custom_end_date:
+            query = query.filter(Transaction.transaction_date <= custom_end_date)
+
+    transactions = query.all()
+
+    # Retrieve each transaction's associated category
+    transaction_list = [
+        (t, Category.query.filter_by(category_id=t.category_id, user_id=current_user.id).first())
+        for t in transactions
+    ]
+
+    total_expense = 0
+    total_income = 0
+
+    for t, cat in transaction_list:
+        if t.transaction_type == 'expense':
+            total_expense += t.amount
+        elif t.transaction_type == 'income':
+            total_income += t.amount
+    net_total = total_income - total_expense
+
+    current_date = datetime.today().strftime('%Y-%m-%d')
+
+    return render_template(
+        'all_transactions.html',
+        transactions=transaction_list,
+        transaction_type=transaction_type,
+        current_date=current_date,
+        total_expense=total_expense,
+        total_income=total_income,
+        net_total=net_total
+    )
+
+
 @app.route('/transactions', methods=['GET', 'POST'])
 @login_required
 def create_transactions():
     if request.method == 'POST':
-        # Process the form submission
         total = request.form.get('total')
         date_str = request.form.get('date')
         category_id = request.form.get('category')
@@ -479,13 +563,12 @@ def create_transactions():
         entry_method = request.form.get('entry_method')  # "manual" or "slip"
         transaction_type = request.form.get('transaction_type')  # "expense" or "income"
 
-        transaction_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
+        transaction_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now(thai_tz).date()
         try:
             amount = Decimal(total)
         except Exception:
             amount = Decimal('0.00')
 
-        # Validate that the selected category belongs to the current user
         category = Category.query.filter_by(category_id=category_id, user_id=current_user.id, is_deleted=False).first()
         if not category:
             flash("Invalid category selected.", "danger")
@@ -518,18 +601,15 @@ def create_transactions():
         db.session.add(new_transaction)
         db.session.commit()
 
-        update_budget_amount(current_user.id, category_id, transaction_date)
-        db.session.commit() 
-
-        # Monthly Limit Alert Code...
-        # category is already fetched above and is verified to belong to current_user
         if category and category.monthly_limit:
             monthly_sum = db.session.query(
                 func.coalesce(func.sum(Transaction.amount), 0)
             ).filter(
                 Transaction.category_id == category_id,
                 extract('year', Transaction.transaction_date) == transaction_date.year,
-                extract('month', Transaction.transaction_date) == transaction_date.month
+                extract('month', Transaction.transaction_date) == transaction_date.month,
+                Transaction.transaction_type == 'expense',
+                Transaction.is_deleted == False
             ).scalar()
 
             if monthly_sum > category.monthly_limit:
@@ -537,117 +617,19 @@ def create_transactions():
 
         return redirect(url_for('create_transactions', transaction_type=transaction_type))
     else:
-        # Get the transaction type from the query string, defaulting to "expense"
+        # GET request: Render the form
         transaction_type_default = request.args.get('transaction_type', 'expense')
-        # Filter categories by the transaction type, not deleted, and only the current user's
         categories = Category.query.filter_by(
             transaction_type=transaction_type_default,
             is_deleted=False,
             user_id=current_user.id
         ).all()
-        current_date = datetime.now().strftime('%Y-%m-%d')
+        current_date = datetime.now(thai_tz).strftime('%Y-%m-%d')
         return render_template('transactions.html', 
                                categories=categories, 
                                current_date=current_date, 
                                transaction_type_default=transaction_type_default)
 
-
-@app.route('/upload_icon', methods=['POST'])
-def upload_icon():
-    if 'file' not in request.files:
-        return jsonify(success=False, message="No file part in the request"), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify(success=False, message="No selected file"), 400
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        # Set the upload folder relative to your application's root
-        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
-        if not os.path.exists(upload_folder):
-            os.makedirs(upload_folder)
-        filepath = os.path.join(upload_folder, filename)
-        file.save(filepath)
-        # Generate a URL that points to the saved file (this will be much shorter than a data URL)
-        file_url = url_for('static', filename='uploads/' + filename, _external=True)
-        return jsonify(success=True, file_url=file_url)
-    else:
-        return jsonify(success=False, message="File type not allowed"), 400
-
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/all_transactions')
-@login_required
-def all_transactions():
-    transaction_type = request.args.get('transaction_type', 'all')
-    filter_type = request.args.get('filter', 'month')
-    date_str = request.args.get('date')
-    
-    try:
-        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.today().date()
-    except ValueError:
-        selected_date = datetime.today().date()
-
-    # Only show transactions for the current user and exclude soft-deleted transactions.
-    query = Transaction.query.filter(
-        Transaction.is_deleted == False,
-        Transaction.user_id == current_user.id
-    )
-
-    if transaction_type != "all":
-        query = query.filter(Transaction.transaction_type == transaction_type)
-
-    # Date Filtering
-    if filter_type == 'day':
-        query = query.filter(Transaction.transaction_date == selected_date)
-    elif filter_type == 'week':
-        start_week = selected_date - timedelta(days=selected_date.weekday())
-        end_week = start_week + timedelta(days=6)
-        query = query.filter(Transaction.transaction_date.between(start_week, end_week))
-    elif filter_type == 'month':
-        query = query.filter(
-            extract('year', Transaction.transaction_date) == selected_date.year,
-            extract('month', Transaction.transaction_date) == selected_date.month
-        )
-    elif filter_type == 'year':
-        query = query.filter(extract('year', Transaction.transaction_date) == selected_date.year)
-
-    transactions = query.all()
-
-    # Pair each transaction with its Category
-    transaction_list = [
-        (t, Category.query.filter_by(category_id=t.category_id, user_id=current_user.id).first())
-        for t in transactions
-    ]
-
-    # --- Calculate Totals ---
-    total_expense = 0
-    total_income = 0
-
-    for t, cat in transaction_list:
-        if t.transaction_type == 'expense':
-            total_expense += t.amount
-        elif t.transaction_type == 'income':
-            total_income += t.amount
-
-    # net_total = total_income - total_expense (if you want a net figure)
-    net_total = total_income - total_expense
-
-    # If you prefer 0.00 in case no transactions exist, you can ensure formatting in the template.
-
-    current_date = datetime.today().strftime('%Y-%m-%d')
-
-    return render_template(
-        'all_transactions.html',
-        transactions=transaction_list,
-        transaction_type=transaction_type,
-        current_date=current_date,
-        total_expense=total_expense,
-        total_income=total_income,
-        net_total=net_total
-    )
 
 @app.route('/delete_transaction/<int:transaction_id>', methods=['POST'])
 @login_required
@@ -657,8 +639,6 @@ def delete_transaction(transaction_id):
         return jsonify({"success": False, "message": "Transaction not found or access denied"}), 404
     transaction.is_deleted = True  # Soft delete
     db.session.commit()
-    update_budget_amount(transaction.user_id, transaction.category_id, transaction.transaction_date)
-    db.session.commit() 
     return jsonify({"success": True})
 
 
@@ -676,14 +656,13 @@ def edit_transaction(transaction_id):
         if transaction_date_str:
             transaction.transaction_date = datetime.strptime(transaction_date_str, '%Y-%m-%d').date()
         transaction.description = data.get("description", transaction.description)
-        transaction.date_updated = datetime.now()
+        transaction.date_updated = datetime.now(thai_tz)
         db.session.commit()
-        update_budget_amount(transaction.user_id, transaction.category_id, transaction.transaction_date)
-        db.session.commit() 
         return jsonify({"success": True, "message": "Transaction updated successfully"})
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 
 @login_required
@@ -713,7 +692,6 @@ def report():
     except ValueError:
         selected_date = datetime.today().date()
 
-    # Calculate date range
     if filter_type == 'day':
         date_range = (selected_date, selected_date)
     elif filter_type == 'week':
@@ -842,7 +820,7 @@ def edit_category(category_id):
         category.transaction_type = data.get("transaction_type", category.transaction_type)
         category.description = data.get("description", category.description)
         category.icon_url = data.get("icon_url", category.icon_url)
-        category.date_updated = datetime.now()
+        category.date_updated = datetime.now(thai_tz)
         db.session.commit()
         return jsonify({"success": True, "message": "Category updated successfully"})
     except Exception as e:
@@ -850,83 +828,159 @@ def edit_category(category_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
+def compute_budget_period(duration_type, base_date=None, custom_start=None, custom_end=None):
+    base_date = base_date or datetime.today().date()
+    if duration_type == 'week':
+        start_date = base_date - timedelta(days=base_date.weekday())
+        end_date = start_date + timedelta(days=6)
+    elif duration_type == 'month':
+        start_date = base_date.replace(day=1)
+        next_month = start_date.replace(day=28) + timedelta(days=4)
+        end_date = next_month - timedelta(days=next_month.day)
+    elif duration_type == 'year':
+        start_date = base_date.replace(month=1, day=1)
+        end_date = base_date.replace(month=12, day=31)
+    elif duration_type == 'custom' and custom_start and custom_end:
+        start_date = datetime.strptime(custom_start, '%Y-%m-%d').date()
+        end_date = datetime.strptime(custom_end, '%Y-%m-%d').date()
+    else:
+        start_date = base_date.replace(day=1)
+        next_month = start_date.replace(day=28) + timedelta(days=4)
+        end_date = next_month - timedelta(days=next_month.day)
+    return start_date, end_date
+
+def calculate_budget_for_category(user_id, category, month):
+    if hasattr(category, 'limit_start_date') and category.limit_start_date and \
+       hasattr(category, 'limit_end_date') and category.limit_end_date:
+        start_date = category.limit_start_date
+        end_date = category.limit_end_date
+    else:
+        start_date = datetime.strptime(month, '%Y-%m')
+        if start_date.month == 12:
+            end_date = datetime(start_date.year, 12, 31)
+        else:
+            end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
+    transactions = Transaction.query.filter(
+        Transaction.user_id == user_id,
+        Transaction.category_id == category.category_id,
+        Transaction.transaction_date >= start_date,
+        Transaction.transaction_date <= end_date,
+        Transaction.transaction_type == 'expense',
+        Transaction.is_deleted == False
+    ).all()
+    spent_amount = sum(t.amount or 0 for t in transactions)
+    percent_used = (spent_amount / category.monthly_limit * 100) if category.monthly_limit > 0 else 0
+    return {
+        'category_id': category.category_id,
+        'name': category.name,
+        'icon_url': category.icon_url,
+        'monthly_limit': category.monthly_limit,
+        'spent_amount': spent_amount,
+        'start_date': start_date,
+        'end_date': end_date,
+        'percent_used': percent_used,
+        'remaining': category.monthly_limit - spent_amount
+    }
 
 
 @login_required
 @app.route('/budgets')
 def budgets():
     user_id = current_user.id
-    user_budgets = Budget.query.filter_by(user_id=user_id, is_deleted=False).order_by(Budget.date_updated.desc()).all()
+    current_month = datetime.now().strftime('%Y-%m')
+    categories = Category.query.filter_by(user_id=user_id).filter(Category.monthly_limit.isnot(None)).all()
+    computed_budgets = [calculate_budget_for_category(user_id, cat, current_month) for cat in categories]
 
-    categories = {}
-    
-    # ดึงเฉพาะ Category ที่มี monthly_limit
-    categories_with_limit = Category.query.filter_by(user_id=user_id).filter(Category.monthly_limit.isnot(None)).all()
+    def classify_budget(budget):
+        duration = (budget['end_date'] - budget['start_date']).days + 1
+        if duration == 7:
+            return 'Weekly'
+        elif 28 <= duration <= 31:
+            return 'Monthly'
+        elif 360 <= duration <= 370:
+            return 'Yearly'
+        else:
+            return 'Custom'
 
-    new_budgets = []
-    for category in categories_with_limit:
-        if not Budget.query.filter_by(user_id=user_id, category_id=category.category_id, is_deleted=False).first():
-            new_budgets.append(Budget(
-                user_id=user_id,
-                category_id=category.category_id,
-                month=datetime.now().strftime('%Y-%m'),
-                date_created=datetime.now(),
-                date_updated=datetime.now()
-            ))
+    grouped_budgets = {
+        'Weekly': [],
+        'Monthly': [],
+        'Yearly': [],
+        'Custom': []
+    }
+    for budget in computed_budgets:
+        btype = classify_budget(budget)
+        grouped_budgets[btype].append(budget)
 
-        categories[category.category_id] = {
-            'name': category.name,
-            'icon_url': category.icon_url,
-            'monthly_limit': category.monthly_limit
-        }
-
-    if new_budgets:
-        db.session.add_all(new_budgets)
-        db.session.commit()
-
-    for budget in user_budgets:
-        if budget.category_id in categories:
-            category = categories[budget.category_id]
-            categories[budget.budget_id] = {
-                'name': category['name'],
-                'icon_url': category['icon_url']
-            }
-
-        start_date = datetime.strptime(budget.month, "%Y-%m")
-        end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
-        budget.start_of_month = start_date
-        budget.end_of_month = end_date
-
-    return render_template('budgets.html', budgets=user_budgets, categories=categories)
-
-
-def get_budget_amount(user_id, category_id, month):
-    start_date = datetime.strptime(month, "%Y-%m")
-    end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
-    
-    transactions = Transaction.query.filter(
-        Transaction.user_id == user_id,
-        Transaction.category_id == category_id,
-        Transaction.transaction_date >= start_date,
-        Transaction.transaction_date <= end_date,
-        Transaction.transaction_type == 'expense',
-        Transaction.is_deleted == False
+    categories_expense = Category.query.filter_by(
+        transaction_type='expense',
+        is_deleted=False,
+        user_id=user_id
     ).all()
 
-    return sum(t.amount or 0 for t in transactions)
+    return render_template('budgets.html', grouped_budgets=grouped_budgets, categories_expense=categories_expense)
 
+@login_required
+@app.route('/update_category_budget', methods=['POST'])
+def update_category_budget():
+    category_id = request.form.get('category_id')
+    new_budget = request.form.get('new_budget')
+    
+    duration_type = request.form.get('duration_type')
+    custom_start = request.form.get('custom_start_date')
+    custom_end = request.form.get('custom_end_date')
+    base_date = datetime.today().date() 
 
-def update_budget_amount(user_id, category_id, transaction_date):
-    budget = Budget.query.filter_by(user_id=user_id, category_id=category_id, is_deleted=False).first()
+    start_date, end_date = compute_budget_period(duration_type, base_date, custom_start, custom_end)
 
-    if budget:
-        budget.amount = get_budget_amount(user_id, category_id, budget.month)
+    try:
+        new_budget_decimal = Decimal(new_budget)
+    except Exception:
+        return redirect(url_for('budgets'))
+    
+    category = Category.query.filter_by(category_id=category_id, user_id=current_user.id, is_deleted=False).first()
+    if not category:
+        return redirect(url_for('budgets'))
+    
+    category.monthly_limit = new_budget_decimal
+    category.limit_start_date = start_date  
+    category.limit_end_date = end_date      
+    db.session.commit()
+    return redirect(url_for('budgets'))
 
-        start_date = datetime.strptime(budget.month, "%Y-%m")
-        end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
+@login_required
+@app.route('/edit_category_budget', methods=['POST'])
+def edit_category_budget():
+    category_id = request.form.get('category_id')
+    new_budget = request.form.get('new_budget')
+    duration_type = request.form.get('duration_type')
+    custom_start = request.form.get('custom_start_date')
+    custom_end = request.form.get('custom_end_date')
+    base_date = datetime.today().date()
+    
+    try:
+        new_budget_decimal = Decimal(new_budget)
+    except Exception:
+        return redirect(url_for('budgets'))
+    
+    category = Category.query.filter_by(category_id=category_id, user_id=current_user.id, is_deleted=False).first()
+    if not category:
+        return redirect(url_for('budgets'))
+    
+    category.monthly_limit = new_budget_decimal
+    if duration_type:
+        start_date, end_date = compute_budget_period(duration_type, base_date, custom_start, custom_end)
+        category.limit_start_date = start_date
+        category.limit_end_date = end_date
+    db.session.commit()
+    return redirect(url_for('budgets'))
 
-        current_date = datetime.now().date()
-        if current_date >= end_date.date():
-            budget.is_deleted = True
-
-        db.session.commit()
+@login_required
+@app.route('/delete_category_budget/<int:category_id>', methods=['POST'])
+def delete_category_budget(category_id):
+    category = Category.query.filter_by(category_id=category_id, user_id=current_user.id, is_deleted=False).first()
+    if not category:
+        return redirect(url_for('budgets'))
+    category.monthly_limit = None
+    db.session.commit()
+    return redirect(url_for('budgets'))

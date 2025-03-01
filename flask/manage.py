@@ -2,7 +2,7 @@ from flask.cli import FlaskGroup
 from werkzeug.security import generate_password_hash
 from app import app, db
 from app.models.contact import Contact
-from app.models.jubjai import User,Category,Transaction,Budget
+from app.models.jubjai import User,Category,Transaction
 from app import views
 from datetime import datetime
 
@@ -95,16 +95,6 @@ def seed_db():
     
     db.session.add(transaction_income)
     db.session.commit()
-
-    budgets = Budget(
-        user_id=user.id,
-        category_id=category.category_id,
-        month=datetime.now().strftime('%Y-%m')
-    )
-    
-    db.session.add(budgets)
-    db.session.commit()
-
 
 
 

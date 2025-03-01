@@ -9,6 +9,7 @@
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/categories.css') }}">
+    <link rel="stylesheet" href="https://cdn-icons-png.flaticon.com/512/1046/1046857.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
@@ -47,6 +48,25 @@
                 <label for="monthly_limit" class="form-label">Monthly Limit</label>
                 <input type="number" step="0.01" class="form-control" id="monthly_limit" name="monthly_limit"
                     placeholder="Enter monthly limit (optional)">
+            </div>
+
+            <!-- Duration Selection (only enabled if Monthly Limit is provided) -->
+            <div class="mb-3">
+                <label for="durationSelect" class="form-label">Duration</label>
+                <select class="form-select" id="durationSelect" name="duration_type" disabled>
+                    <option value="week">1 Week</option>
+                    <option value="month" selected>1 Month</option>
+                    <option value="year">1 Year</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+
+            <!-- Custom Duration Date Inputs -->
+            <div id="customDurationInputs" class="mb-3" style="display: none;">
+                <label for="customStartDate" class="form-label">Custom Start Date</label>
+                <input type="date" class="form-control" id="customStartDate" name="custom_start_date">
+                <label for="customEndDate" class="form-label">Custom End Date</label>
+                <input type="date" class="form-control" id="customEndDate" name="custom_end_date">
             </div>
 
             <!-- Icon Selection -->
@@ -154,7 +174,7 @@
     <!-- Bootstrap 5 Bundle JS (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Icon Selection and Transaction Type Script -->
+    <!-- Icon Selection and Form Script -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // For preset icon selection
@@ -163,29 +183,27 @@
                     var iconUrl = this.getAttribute("data-icon-url");
                     document.getElementById("icon_url").value = iconUrl;
                     document.getElementById("selectedIconPreview").src = iconUrl;
-                    // Hide the icon modal
                     var iconModalEl = document.getElementById("iconModal");
                     var modalInstance = bootstrap.Modal.getInstance(iconModalEl);
-                    modalInstance.hide();
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    } else {
+                        new bootstrap.Modal(iconModalEl).hide();
+                    }
                 });
             });
 
             // When "Import New Icon" card is clicked, open the Import New Icon Modal
             document.getElementById("importNewIcon").addEventListener("click", function () {
-                // Hide the preset icon modal
                 var iconModalEl = document.getElementById("iconModal");
                 var iconModalInstance = bootstrap.Modal.getInstance(iconModalEl);
-                if (!iconModalInstance) {
-                    iconModalInstance = new bootstrap.Modal(iconModalEl);
+                if (iconModalInstance) {
+                    iconModalInstance.hide();
+                } else {
+                    new bootstrap.Modal(iconModalEl).hide();
                 }
-                iconModalInstance.hide();
-
-                // Show the import icon modal
                 var importModalEl = document.getElementById("importIconModal");
-                var importModalInstance = bootstrap.Modal.getInstance(importModalEl);
-                if (!importModalInstance) {
-                    importModalInstance = new bootstrap.Modal(importModalEl);
-                }
+                var importModalInstance = new bootstrap.Modal(importModalEl);
                 importModalInstance.show();
             });
 
@@ -222,18 +240,20 @@
                 var selectedMethod = document.querySelector('input[name="importMethod"]:checked').value;
                 if (selectedMethod === "url") {
                     var newIconUrl = document.getElementById("iconUrlInput").value;
-                    // Validate URL for JPG/PNG
                     if (!/\.(jpg|jpeg|png)$/i.test(newIconUrl)) {
                         alert("Please enter a valid URL ending with .jpg, .jpeg, or .png.");
                         return;
                     }
-                    // Update the main form with the URL
                     document.getElementById("icon_url").value = newIconUrl;
                     document.getElementById("selectedIconPreview").src = newIconUrl;
                     var importModalEl = document.getElementById("importIconModal");
                     var importModalInstance = bootstrap.Modal.getInstance(importModalEl);
-                    importModalInstance.hide();
-                } else { // Upload method
+                    if (importModalInstance) {
+                        importModalInstance.hide();
+                    } else {
+                        new bootstrap.Modal(importModalEl).hide();
+                    }
+                } else {
                     var fileInput = document.getElementById("iconFileInput");
                     if (fileInput.files.length == 0) {
                         alert("Please select an image file.");
@@ -251,12 +271,15 @@
                         .then(data => {
                             if (data.success) {
                                 var newIconUrl = data.file_url;
-                                // Update main form with the new (short) URL
                                 document.getElementById("icon_url").value = newIconUrl;
                                 document.getElementById("selectedIconPreview").src = newIconUrl;
                                 var importModalEl = document.getElementById("importIconModal");
                                 var importModalInstance = bootstrap.Modal.getInstance(importModalEl);
-                                importModalInstance.hide();
+                                if (importModalInstance) {
+                                    importModalInstance.hide();
+                                } else {
+                                    new bootstrap.Modal(importModalEl).hide();
+                                }
                             } else {
                                 alert("Error uploading icon: " + data.message);
                             }
@@ -278,12 +301,34 @@
                     monthlyLimitInput.disabled = false;
                     monthlyLimitInput.placeholder = "Enter monthly limit (optional)";
                 }
+                // Enable or disable the duration selector based on monthly limit value
+                if (monthlyLimitInput.value.trim() !== "") {
+                    document.getElementById("durationSelect").disabled = false;
+                } else {
+                    document.getElementById("durationSelect").disabled = true;
+                    // Also hide custom duration inputs if any
+                    document.getElementById("customDurationInputs").style.display = "none";
+                }
             }
 
-            // Update on change
             transactionTypeSelect.addEventListener("change", updateMonthlyLimitField);
-            // Check on page load
+            monthlyLimitInput.addEventListener("input", updateMonthlyLimitField);
             updateMonthlyLimitField();
+
+            // Toggle custom duration inputs based on duration selection
+            var durationSelect = document.getElementById("durationSelect");
+            var customDurationInputs = document.getElementById("customDurationInputs");
+
+            function toggleCustomDuration() {
+                if (durationSelect.value === "custom") {
+                    customDurationInputs.style.display = "block";
+                } else {
+                    customDurationInputs.style.display = "none";
+                }
+            }
+
+            durationSelect.addEventListener("change", toggleCustomDuration);
+            toggleCustomDuration();
         });
     </script>
 </body>

@@ -46,17 +46,21 @@ class Category(db.Model, SerializerMixin):
         Enum('income', 'expense', name='category_type_enum'),
         nullable=False
     )
+    limit_start_date = db.Column(db.Date)
+    limit_end_date = db.Column(db.Date)
     is_deleted = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.now)
     date_updated = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
-    def __init__(self, name, user_id, icon_url,transaction_type,description=None, monthly_limit=None, date_created=None, date_updated=None, is_deleted=False):
+    def __init__(self, name, user_id, icon_url,transaction_type,limit_start_date= None,limit_end_date = None,description=None, monthly_limit=None, date_created=None, date_updated=None, is_deleted=False):
         self.name = name
         self.description = description
         self.transaction_type = transaction_type
         self.icon_url = icon_url
         self.user_id = user_id
         self.monthly_limit = monthly_limit
+        self.limit_start_date = limit_start_date
+        self.limit_end_date = limit_end_date
         self.date_created = date_created if date_created else datetime.now()
         self.date_updated = date_updated if date_updated else datetime.now()
         self.is_deleted = is_deleted
@@ -89,47 +93,6 @@ class Transaction(db.Model, SerializerMixin):
             raise ValueError("entry_method must be either 'manual' or 'slip'")
         self.entry_method = entry_method
         self.slip_image_url = slip_image_url
-        self.date_created = date_created if date_created else datetime.now()
-        self.date_updated = date_updated if date_updated else datetime.now()
-        self.is_deleted = is_deleted
-
-class Budget(db.Model, SerializerMixin):
-    __tablename__="budgets"
-    __serialize_rules__=['-user', '-category.transactions', '-category.user']
-    budget_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey("categories.category_id"), nullable=False)
-    month = db.Column(db.String(7), nullable=False)
-    monthly_limit = db.Column(db.Numeric(10, 2), nullable=False)
-    amount = db.Column(db.Numeric(10, 2), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.now)
-    date_updated = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    is_deleted = db.Column(db.Boolean, default=False)
-
-    def __init__(self, user_id, category_id, month, date_created=None, date_updated=None, is_deleted=False):
-        self.user_id = user_id
-        self.category_id = category_id
-        self.month = month
-
-        category = Category.query.filter_by(category_id=category_id, user_id=user_id).first()
-        if not category or category.monthly_limit is None or category.monthly_limit <= 0:
-            raise ValueError("Invalid category or monthly limit")
-        
-        self.monthly_limit = category.monthly_limit
-        
-        start_date = datetime.strptime(month, "%Y-%m")
-        end_date = datetime(start_date.year, start_date.month + 1, 1) if start_date.month < 12 else datetime(start_date.year + 1, 1, 1)
-
-        transactions = Transaction.query.filter(
-            Transaction.user_id == user_id,
-            Transaction.category_id == category_id,
-            Transaction.transaction_date >= start_date,
-            Transaction.transaction_date < end_date,
-            Transaction.transaction_type == 'expense',
-            Transaction.is_deleted == False
-        ).all()
-
-        self.amount = sum(t.amount or 0 for t in transactions)
         self.date_created = date_created if date_created else datetime.now()
         self.date_updated = date_updated if date_updated else datetime.now()
         self.is_deleted = is_deleted
