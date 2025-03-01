@@ -859,8 +859,7 @@ def budgets():
     user_budgets = Budget.query.filter_by(user_id=user_id, is_deleted=False).order_by(Budget.date_updated.desc()).all()
 
     categories = {}
-    
-    # ดึงเฉพาะ Category ที่มี monthly_limit
+
     categories_with_limit = Category.query.filter_by(user_id=user_id).filter(Category.monthly_limit.isnot(None)).all()
 
     new_budgets = []
@@ -930,3 +929,22 @@ def update_budget_amount(user_id, category_id, transaction_date):
             budget.is_deleted = True
 
         db.session.commit()
+
+@app.route('/delete_budget/<int:budget_id>', methods=['POST'])
+@login_required
+def delete_budget(budget_id):
+    budget = Budget.query.get(budget_id)
+    if not budget or budget.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Budget not found or access denied"}), 404
+    budget.is_deleted = True  # Soft delete
+
+    category = Category.query.get(budget.category_id)
+    if category:
+        category.monthly_limit = None
+        db.session.commit()
+
+
+    budget.is_deleted = True 
+    db.session.commit()
+    
+    return redirect(url_for('budgets'))
