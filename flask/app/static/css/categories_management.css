@@ -1,0 +1,213 @@
+body {
+    background-color: #f7f4fa !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Sidebar styling */
+.sidebar {
+    padding-top: 1rem;
+    position: absolute;
+    width: 70px;
+    height: 100vh;
+    background: #dddbf8; /* Pastel purple */
+    overflow: hidden;
+    transition: 0.5s;
+    top: 0;
+}
+
+.sidebar:hover {
+    width: 200px;
+}
+
+.sidebar ul {
+    position: relative;
+    padding: 0;
+    height: 100vh;
+}
+
+.sidebar ul li {
+    list-style: none;
+    background: #dddbf8; /* Matches the sidebar */
+}
+
+.sidebar ul li a {
+    position: relative;
+    display: flex;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.sidebar ul li a .icon {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 70px;
+    height: 70px;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.sidebar ul li a .text {
+    position: relative;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    font-size: 1em;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.bottom {
+    position: absolute;
+    bottom: 1rem;
+    width: 100%;
+}
+
+/* Main content area */
+.main-content {
+    margin-left: 100px;
+    margin-top: 30px;
+    margin-right: 30px;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.main-content h2 {
+    margin-bottom: 1rem;
+    font-size: 2rem; 
+    font-weight: bold;
+}
+
+/* "New Expense" button alignment */
+.new-expense-btn {
+    float: right;
+    margin: 0 auto;
+}
+
+/* Table styling */
+.expense-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.expense-table thead th {
+    background-color: #f2f2f2;
+    text-align: left;
+    padding: 12px;
+}
+
+.expense-table tbody td {
+    padding: 12px;
+}
+
+/* Updated row background to a softer purple tint */
+.expense-table tbody tr {
+    background-color: #f3eafa;
+    border-bottom: 1px solid #e8d7f5;
+}
+
+.expense-table tbody tr:hover {
+    background-color: #e2c8f3;
+}
+
+/* Optional styling for the category cell */
+.category-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-cell img {
+    width: 24px;
+    height: 24px;
+}
+
+.date-text {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Floating buttons container */
+.floating-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Individual floating button style */
+.floating-btn {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in-out;
+    background-color: #9f7aea; /* Pastel purple */
+    color: #fff;
+    border: none;
+}
+
+.floating-btn:hover {
+    transform: scale(1.1);
+    background-color: #805ad5; /* Slightly darker hover */
+}
+
+/* Red and green amounts */
+.red-amount {
+    color: red;
+    font-weight: bold;
+}
+
+.green-amount {
+    color: green;
+    font-weight: bold;
+}
+
+.nav-tabs .nav-item {
+    flex: 1;
+    text-align: center;
+}
+
+.nav-tabs .nav-link {
+    width: 100%;
+}
+
+/* Override Bootstrap's .btn-primary for consistent theme color */
+.btn-primary {
+    background-color: #9f7aea !important; 
+    border-color: #9f7aea !important;
+}
+
+.btn-primary:hover {
+    background-color: #805ad5 !important;
+    border-color: #805ad5 !important;
+}
+
+/* Floating + button styling (if separate from .btn-primary) */
+.floating-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999;
+    border-radius: 50%;
+    padding: 15px 20px;
+    font-size: 20px;
+    background-color: #9f7aea; /* Pastel purple */
+    color: #fff;
+    border: none;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.floating-btn:hover {
+    background-color: #805ad5;
+}
