@@ -1,149 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <!-- Bootstrap CSS (optional) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/all_expense.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
-
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <!-- Bootstrap CSS and additional CSS files -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/all_expense.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+  <style>
+    /* Additional overrides so that the main content fits the viewport */
+    .main-content {
+      min-height: 100vh;
+    }
+    /* Adjust this value as needed based on your top cards height and padding */
+    .chart-calendar-row {
+      height: calc(100vh - 200px);
+    }
+  </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <ul>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <ul>
+      <li>
+        <a href="{{ url_for('users_profile') }}" title="Profile">
+          <span class="icon" id="sidebarProfileIcon">
+            <img src="{{ current_user.avatar_url}}" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+          </span>
+          <span class="text">Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('homepage') }}" title="Home">
+          <span class="icon"><i class="bi bi-house-fill"></i></span>
+          <span class="text">Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('all_transactions') }}" title="All_transaction">
+          <span class="icon"><i class="bi bi-clipboard2-fill"></i></span>
+          <span class="text">Transaction</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('create_transactions', transaction_type='income') }}" title="Income">
+          <span class="icon"><i class="bi bi-graph-up"></i></span>
+          <span class="text">Income</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('create_transactions', transaction_type='expense') }}" title="Expense">
+          <span class="icon"><i class="bi bi-graph-down"></i></span>
+          <span class="text">Expense</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('budgets') }}" title="Budgets">
+          <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
+          <span class="text">Budgets</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('report') }}" title="Charts">
+          <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
+          <span class="text">Charts</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('Calendar') }}" title="Calendar">
+          <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
+          <span class="text">Calendar</span>
+        </a>
+      </li>
+      <div class="bottom">
         <li>
-          <a href="{{ url_for('users_profile') }}" title="Profile">
-            <span class="icon" id="sidebarProfileIcon">
-              <img src="{{ current_user.avatar_url}}"
-                   alt="Profile" style="width:40px; height:40px; border-radius:50%;">
-            </span>
-            <span class="text">Profile</span>
+          <a href="{{ url_for('categories_management') }}" title="Categories Management">
+            <span class="icon"><i class="bi bi-card-list"></i></span>
+            <span class="text">Categories<br>Management</span>
           </a>
         </li>
         <li>
-          <a href="{{ url_for('homepage') }}" title="Home">
-            <span class="icon"><i class="bi bi-house-fill"></i></span>
-            <span class="text">Home</span>
+          <a href="{{ url_for('users_logout') }}" title="Logout">
+            <span class="icon"><i class="bi bi-box-arrow-left"></i></span>
+            <span class="text">Logout</span>
           </a>
         </li>
-        <li>
-          <a href="{{ url_for('all_transactions') }}" title="All_transaction">
-            <span class="icon"><i class="bi bi-clipboard2-fill"></i></span>
-            <span class="text">Transaction</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('create_transactions', transaction_type='income') }}" title="Income">
-            <span class="icon"><i class="bi bi-graph-up"></i></span>
-            <span class="text">Income</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('create_transactions', transaction_type='expense') }}" title="Expense">
-            <span class="icon"><i class="bi bi-graph-down"></i></span>
-            <span class="text">Expense</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('budgets') }}" title="Budgets">
-            <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
-            <span class="text">Budgets</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('report') }}" title="Charts">
-            <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
-            <span class="text">Charts</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('Calendar') }}" title="Calendar">
-            <span class="icon"><i class="bi bi-bar-chart-fill"></i></span>
-            <span class="text">Calendar</span>
-          </a>
-        </li>
-        
-        <div class="bottom">
-          <li>
-            <a href="{{ url_for('categories_management') }}" title="Categories Management">
-              <span class="icon"><i class="bi bi-card-list"></i></span>
-              <span class="text">Categories<br>Management</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ url_for('users_logout') }}" title="Logout">
-              <span class="icon"><i class="bi bi-box-arrow-left"></i></span>
-              <span class="text">Logout</span>
-            </a>
-          </li>
-        </div>
-      </ul>
-    </div>
-
+      </div>
+    </ul>
+  </div>
+  
   <!-- Main Content -->
   <div class="main-content">
-    <!-- Cards: Income, Expense, Total -->
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <div class="card p-3 text-center">
-          <i class="bi bi-wallet2 fs-1"></i>
-          <h5>Income</h5>
-          <h3>14250</h3>
-        </div>
+    <!-- Top Cards -->
+<div class="row mb-4">
+  <!-- Income Card -->
+  <div class="col-md-4">
+    <a href="{{ url_for('create_transactions', transaction_type='income') }}" class="text-decoration-none">
+      <div class="card card-custom text-center">
+        <i class="bi bi-wallet2 fs-1"></i>
+        <h5>Income</h5>
+        <h3>{{ income_sum }}</h3>
       </div>
-      <div class="col-md-4">
-        <div class="card p-3 text-center">
-          <i class="bi bi-cash-stack fs-1"></i>
-          <h5>Expense</h5>
-          <h3>14250</h3>
-        </div>
+    </a>
+  </div>
+  <!-- Expense Card -->
+  <div class="col-md-4">
+    <a href="{{ url_for('create_transactions', transaction_type='expense') }}" class="text-decoration-none">
+      <div class="card card-custom text-center">
+        <i class="bi bi-cash-stack fs-1"></i>
+        <h5>Expense</h5>
+        <h3>{{ expense_sum }}</h3>
       </div>
-      <div class="col-md-4">
-        <div class="card p-3 text-center">
-          <i class="bi bi-clipboard-check fs-1"></i>
-          <h5>Total</h5>
-          <h3>14250</h3>
-        </div>
+    </a>
+  </div>
+  <!-- Total Card -->
+  <div class="col-md-4">
+    <a href="{{ url_for('all_transactions') }}" class="text-decoration-none">
+      <div class="card card-custom text-center">
+        <i class="bi bi-clipboard-check fs-1"></i>
+        <h5>Total</h5>
+        <h3>{{ total_sum }}</h3>
       </div>
-    </div>
-
-    <!-- Layout: Chart and Calendar -->
-<div class="row align-items-stretch">
-<!-- Example: แทนที่ส่วนตารางกราฟเดิม -->
-<div class="col-md-8">
-  <div class="card text-light p-3">
-    <h5>Last 7 days</h5>
-    <!-- Canvas element for Chart.js -->
-    <canvas id="myChart"></canvas>
+    </a>
   </div>
 </div>
 
-
-  
-      <!-- คอลัมน์ปฏิทิน -->
-      <div class="col-md-4 d-flex flex-column">
-        <div class="card flex-grow-1">
-          <!-- เนื้อหา Calendar -->
+    
+    <!-- Chart and Calendar Row (equal width & height) -->
+    <div class="row align-items-stretch chart-calendar-row">
+      <!-- Chart Column -->
+      <div class="col-md-6">
+        <div class="card text-light p-3 equal-dimensions">
+          <canvas id="myChart" style="height: 100%;"></canvas>
+        </div>
+      </div>
+      <!-- Calendar Column -->
+      <div class="col-md-6">
+        <div class="card p-3 equal-dimensions">
+          <!-- Calendar Header -->
           <div class="d-flex align-items-center justify-content-between">
             <button class="btn btn-light" id="prevMonth">
               <i class="bi bi-chevron-left"></i>
             </button>
-            <h5 id="monthYear" class="mb-0">Month Year</h5>
+            <h4 id="monthYear" class="mb-0"></h4>
             <button class="btn btn-light" id="nextMonth">
               <i class="bi bi-chevron-right"></i>
             </button>
           </div>
+          <!-- Calendar Table -->
           <table class="calendar">
             <thead>
-              <!-- ... -->
+              <!-- Optional header rows -->
             </thead>
             <tbody id="calendarBody"></tbody>
           </table>
@@ -151,202 +161,156 @@
       </div>
     </div>
   </div>
-
-  <!-- Bootstrap JS -->
+  
+  <!-- Scripts: jQuery, Bootstrap, Chart.js, and Calendar JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.1/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script>
-    // ตัวอย่างข้อมูล Event หลายวัน/หลายเดือน
-    // สามารถเพิ่ม/แก้ไข หรือดึงจาก Backend ตามต้องการ
-    const events = [
-      { date: '2025-02-10', type: 'income',  title: 'Salary' },
-      { date: '2025-02-15', type: 'expense', title: 'Rent' },
-      { date: '2025-02-26', type: 'expense', title: 'Night Horror' },
-      { date: '2025-02-26', type: 'expense', title: 'Romantic Sunday' },
-      { date: '2025-02-27', type: 'expense', title: 'Evening Movie' },
-      { date: '2025-02-20', type: 'income',  title: 'Freelance Work' },
-      { date: '2025-03-02', type: 'expense', title: 'Shopping' },
-      { date: '2025-03-10', type: 'income',  title: 'Bonus' }
-    ];
-
-    // ตั้งค่าเดือน/ปีเริ่มต้น
-    let currentYear = 2025;
-    let currentMonth = 1; // 1 = February (JS นับเดือนจาก 0)
-
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-
-    // ฟังก์ชันวาดปฏิทิน
-    function renderCalendar(year, month) {
-      const calendarBody = document.getElementById('calendarBody');
-      const monthYear = document.getElementById('monthYear');
-      
-      // เคลียร์ตารางเก่า
-      calendarBody.innerHTML = '';
-
-      // ตั้งหัวข้อ
-      monthYear.textContent = `${monthNames[month]} ${year}`;
-
-      // หา day ของวันแรก กับจำนวนวันทั้งหมด
-      const firstDayOfMonth = new Date(year, month, 1).getDay();
-      const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
-
-      let row = document.createElement('tr');
-
-      // เว้นช่องก่อนวันแรก
-      for (let i = 0; i < firstDayOfMonth; i++) {
-        let emptyCell = document.createElement('td');
-        row.appendChild(emptyCell);
-      }
-
-      // สร้าง td ตามจำนวนวัน
-      for (let day = 1; day <= lastDateOfMonth; day++) {
-        let cell = document.createElement('td');
-        let cellDate = new Date(year, month, day);
-
-        // YYYY-MM-DD
-        let dayString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-
-        // หา events ในวันนี้
-        let dayEvents = events.filter(e => e.date === dayString);
-
-        // แสดงวันที่
-        let dayNumber = document.createElement('div');
-        dayNumber.innerHTML = `<strong>${day}</strong>`;
-        cell.appendChild(dayNumber);
-
-        // ถ้ามี event ก็วนสร้าง div
-        if (dayEvents.length > 0) {
-          dayEvents.forEach(e => {
-            let eventDiv = document.createElement('div');
-            eventDiv.classList.add('event');
-            if (e.type === 'income') {
-              eventDiv.classList.add('event-income');
-            } else if (e.type === 'expense') {
-              eventDiv.classList.add('event-expense');
+    // Chart setup
+    document.addEventListener('DOMContentLoaded', () => {
+      const labels = {{ labels|tojson }};
+      const dataValues = {{ data_values|tojson }};
+      const data = {
+        labels: labels,
+        datasets: [{
+          label: 'Expense',
+          data: dataValues,
+          backgroundColor: 'red'
+        }]
+      };
+      const config = {
+        type: 'bar',
+        data: data,
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '$' + value;
+                }
+              },
+              grid: {
+                borderDash: [5, 5],
+                borderDashOffset: 2,
+                color: 'gray'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
             }
-            eventDiv.innerText = e.title;
-            cell.appendChild(eventDiv);
-          });
+          },
+          plugins: {
+            legend: { display: true },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.parsed.y;
+                  return val === 0 ? 'No data' : `$${val} ${context.dataset.label}`;
+                }
+              }
+            }
+          }
         }
-
+      };
+      const ctx = document.getElementById('myChart').getContext('2d');
+      new Chart(ctx, config);
+    });
+  </script>
+  <script>
+    // Calendar JS (modified to simply navigate to the calendar page when clicking a cell)
+    let currentYear, currentMonth;
+    async function fetchTransactions(year, month, day = null) {
+      const params = new URLSearchParams({
+        type: 'transactions',
+        year: year,
+        month: month + 1
+      });
+      if (day) params.append('day', day);
+      try {
+        const url = `/Calendar?${params.toString()}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network error');
+        return await response.json();
+      } catch (error) {
+        console.error('Error:', error);
+        return [];
+      }
+    }
+    async function renderCalendar() {
+      const transactions = await fetchTransactions(currentYear, currentMonth);
+      if (!transactions) return console.error("No transactions data available.");
+      const dailyTotals = transactions.reduce((acc, t) => {
+        const dateStr = new Date(t.transaction_date).toISOString().split('T')[0];
+        if (!acc[dateStr]) acc[dateStr] = { income: 0, expense: 0, transactions: [] };
+        if (t.transaction_type === 'income') {
+          acc[dateStr].income += parseFloat(t.amount);
+        } else {
+          acc[dateStr].expense += parseFloat(t.amount);
+        }
+        acc[dateStr].transactions.push(t);
+        return acc;
+      }, {});
+      const calendarBody = document.getElementById('calendarBody');
+      calendarBody.innerHTML = '';
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      document.getElementById('monthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+      let row = document.createElement('tr');
+      for (let i = 0; i < firstDay; i++) {
+        row.appendChild(document.createElement('td'));
+      }
+      for (let day = 1; day <= lastDate; day++) {
+        const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const cell = document.createElement('td');
+        cell.className = 'calendar-day';
+        cell.innerHTML = `
+          <div class="d-flex flex-column h-100">
+            <div class="d-flex justify-content-between">
+              <span>${day}</span>
+            </div>
+            ${dailyTotals[dateStr] ? `
+              <div style="margin-top: auto;">
+                ${dailyTotals[dateStr].income > 0 ? `<span class="income-badge">+${dailyTotals[dateStr].income.toFixed(2)}</span>` : ''}
+                ${dailyTotals[dateStr].expense > 0 ? `<span class="expense-badge">-${dailyTotals[dateStr].expense.toFixed(2)}</span>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+        // Instead of opening a modal, clicking on a cell now navigates to the calendar page.
+        cell.addEventListener('click', () => {
+          window.location.href = '/Calendar';
+        });
         row.appendChild(cell);
-
-        // ถ้าเป็นวันเสาร์ -> ขึ้นแถวใหม่
-        if (cellDate.getDay() === 6) {
+        if ((day + firstDay) % 7 === 0) {
           calendarBody.appendChild(row);
           row = document.createElement('tr');
         }
       }
-
-      // แถวสุดท้าย ถ้ายังไม่เต็ม 7 ช่อง ให้แสดงเลย
-      if (row.childNodes.length > 0) {
-        calendarBody.appendChild(row);
-      }
+      if (row.children.length > 0) calendarBody.appendChild(row);
     }
-
-    // ปุ่ม Prev/Next
-    function prevMonth() {
-      currentMonth--;
-      if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      }
-      renderCalendar(currentYear, currentMonth);
-    }
-    function nextMonth() {
-      currentMonth++;
-      if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
-      renderCalendar(currentYear, currentMonth);
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
-      // เริ่มวาดปฏิทิน
-      renderCalendar(currentYear, currentMonth);
-      // ผูก event ปุ่ม
-      document.getElementById('prevMonth').addEventListener('click', prevMonth);
-      document.getElementById('nextMonth').addEventListener('click', nextMonth);
+      const today = new Date();
+      currentYear = today.getFullYear();
+      currentMonth = today.getMonth();
+      renderCalendar();
+      document.getElementById('prevMonth').addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderCalendar();
+      });
+      document.getElementById('nextMonth').addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+      });
     });
-  </script>
-
-  <!-- เรียกใช้ Chart.js จาก CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-  // เลือก canvas ที่มี id="myChart"
-  const ctx = document.getElementById('myChart').getContext('2d');
-
-  // ตัวอย่างข้อมูล (Side by Side)
-  const data = {
-    labels: ['20 Thu', '21 Fri', '22 Sat', '23 Sun', '24 Mon', '25 Tue', '26 Wed'],
-    datasets: [
-      {
-        label: 'Income',
-        data: [0, 60, 0, 0, 0, 0, 0], // ใส่ 0 ในวันที่ไม่มี Income
-        backgroundColor: 'green'
-      },
-      {
-        label: 'Expense',
-        data: [120, 0, 80, 60, 40, 25, 50], // ใส่ 0 ในวันที่ไม่มี Expense
-        backgroundColor: 'red'
-      }
-    ]
-  };
-
-  // กำหนดรูปแบบกราฟ
-  const config = {
-    type: 'bar',
-    data: data,
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return '$' + value;
-            }
-          },
-          grid: {
-            borderDash: [5, 5],
-            borderDashOffset: 2,
-            color: 'gray' // Fixed: wrap the color in quotes
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          display: true
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const val = context.parsed.y;
-              if (val === 0) return 'No data';
-              return `$${val} ${context.dataset.label}`;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  // สร้าง Chart
-  new Chart(ctx, config);
-});
-
   </script>
 </body>
 </html>

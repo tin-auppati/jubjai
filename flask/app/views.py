@@ -13,7 +13,6 @@ from app import app
 from app import db
 from app import login_manager
 from app import oauth
-from datetime import datetime
 from decimal import Decimal
 import os
 from PIL import Image
@@ -29,7 +28,7 @@ from datetime import timedelta
 from app.models.jubjai import User,Category,Transaction
 from flask import send_from_directory
 import calendar as cal
-from datetime import datetime, date
+from datetime import datetime, date , timedelta
 from zoneinfo import ZoneInfo
 from sqlalchemy.orm import joinedload
 
@@ -676,7 +675,68 @@ def edit_transaction(transaction_id):
 @login_required
 @app.route('/homepage')
 def homepage():
-    return render_template('homepage.html')
+    # Sum all income transactions
+    income_sum = (
+        db.session.query(func.sum(Transaction.amount))
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.is_deleted == False,
+            Transaction.transaction_type == 'income'
+        )
+        .scalar()
+        or 0.0
+    )
+
+    # Sum all expense transactions
+    expense_sum = (
+        db.session.query(func.sum(Transaction.amount))
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.is_deleted == False,
+            Transaction.transaction_type == 'expense'
+        )
+        .scalar()
+        or 0.0
+    )
+
+    # Net total (Income - Expense)
+    total_sum = income_sum - expense_sum
+
+    # Existing code for chart data (e.g. last 7 days expenses)
+    tz = ZoneInfo("Asia/Bangkok")
+    today = datetime.now(tz).date()
+    start_date = today - timedelta(days=6)
+
+    transactions = Transaction.query.filter(
+        Transaction.user_id == current_user.id,
+        Transaction.is_deleted == False,
+        Transaction.transaction_date.between(start_date, today)
+    ).all()
+
+    expense_data = {}
+    display_labels = []
+    for i in range(7):
+        day = start_date + timedelta(days=i)
+        date_key = day.strftime('%Y-%m-%d')
+        expense_data[date_key] = 0.0
+        display_labels.append(f"{day.day} {day.strftime('%a')}")
+
+    for trans in transactions:
+        if trans.transaction_type == 'expense':
+            day_str = trans.transaction_date.strftime('%Y-%m-%d')
+            if day_str in expense_data:
+                expense_data[day_str] += float(trans.amount)
+
+    data_values = list(expense_data.values())
+
+    return render_template(
+        'homepage.html',
+        labels=display_labels,
+        data_values=data_values,
+        income_sum=income_sum,
+        expense_sum=expense_sum,
+        total_sum=total_sum
+    )
 
 def get_user_transactions(user_id, start_date=None, end_date=None):
     query = Transaction.query.filter(
@@ -734,12 +794,14 @@ def report():
         transaction_data = t.to_dict()
         transaction_data['category'] = category_map.get(t.category_id, {})
         transactions.append(transaction_data)
+
+    tz = ZoneInfo("Asia/Bangkok")
     
     return render_template("report.html", 
                            transactions=transactions,
                            filter_type=filter_type, 
                            date_range=date_range, 
-                           current_date=datetime.today().strftime('%Y-%m-%d'))
+                           current_date=datetime.now(tz).date().strftime('%Y-%m-%d'))
 
 @login_required
 @app.route('/Calendar', methods=['GET'])
