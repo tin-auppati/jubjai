@@ -9,15 +9,30 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # This keeps Python from buffering stdin/stdout
 ENV PYTHONUNBUFFERED 1
 
+ENV TESSDATA_PREFIX=/usr/share/tessdata
 
-# set work directory
-WORKDIR /flask_app
 
 
 # update the system and add git
-RUN apk update
-RUN apk --no-cache add git gcc libc-dev libffi-dev
+RUN apk update && apk add --no-cache \
+    git \
+    gcc \
+    libc-dev \
+    musl-dev \
+    libffi-dev \
+    postgresql-dev \
+    python3-dev \
+    jpeg-dev \
+    zlib-dev \
+    freetype-dev \
+    tesseract-ocr \
+    poppler-utils \
+    && mkdir -p /usr/share/tessdata \
+    && wget -q -O /usr/share/tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata \
+    && wget -q -O /usr/share/tessdata/tha.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/tha.traineddata
 
+# set work directory
+WORKDIR /flask_app
 
 # install dependencies
 COPY ./requirements.txt /flask_app

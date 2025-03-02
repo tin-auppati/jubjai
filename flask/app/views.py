@@ -4,6 +4,7 @@ import string
 from flask import (jsonify, render_template,
                   request, url_for, flash, redirect, current_app, session)
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.exceptions import HTTPException
 from werkzeug.urls import url_parse
 from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
@@ -15,6 +16,13 @@ from app import oauth
 from datetime import datetime
 from decimal import Decimal
 import os
+from PIL import Image
+import pytesseract
+from pdf2image import convert_from_bytes
+import io
+import re
+import logging
+
 from sqlalchemy import func, extract
 from datetime import timedelta
 
@@ -984,3 +992,87 @@ def delete_category_budget(category_id):
     category.monthly_limit = None
     db.session.commit()
     return redirect(url_for('budgets'))
+
+
+from flask import jsonify
+import logging
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors"""
+    # Handle HTTP exceptions
+    if isinstance(e, HTTPException):
+        response = e.get_response()
+        response.data = json.dumps({
+            "success": False,
+            "error": e.description
+        })
+        response.content_type = "application/json"
+        return response
+
+    # Handle other exceptions
+    app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+    return jsonify(
+        success=False,
+        error="Internal server error"
+    ), 500
+
+@app.route('/process-ocr', methods=['POST'])
+@login_required
+def process_ocr():
+    try:
+        # Validate request
+        if 'slip_image' not in request.files:
+            return jsonify(success=False, error="No file uploaded"), 400
+
+        file = request.files['slip_image']
+        if not file or file.filename == '':
+            return jsonify(success=False, error="No file selected"), 400
+
+        # Validate file size and type
+        file.seek(0, 2)  # Move to end of file
+        file_size = file.tell()
+        file.seek(0)
+        if file_size > 5 * 1024 * 1024:
+            return jsonify(success=False, error="File too large (max 5MB)"), 413
+
+        if file.mimetype not in {'image/jpeg', 'image/png', 'application/pdf'}:
+            return jsonify(success=False, error="Unsupported file type"), 400
+
+        # Process file content
+        try:
+            if file.mimetype.startswith('image/'):
+                img = Image.open(file.stream)
+                text = pytesseract.image_to_string(img, lang='tha+eng')
+            else:
+                images = convert_from_bytes(file.read(), poppler_path='/usr/bin')
+                text = pytesseract.image_to_string(images[0], lang='tha+eng') if images else ''
+        except Exception as e:
+            app.logger.error(f"Processing error: {str(e)}")
+            return jsonify(success=False, error="Invalid file content"), 400
+
+        # Clean and parse text
+        cleaned_text = text.replace(' ', '').replace('\n', ' ')  # Remove spaces between characters
+        amount = None
+
+        # Specific pattern for Thai slips with amount after header
+        thai_pattern = r'(จำนวนเงิน|จํานวนเงิน|ยอดรวม)[\s:]*(\d+\.\d{2})'
+        thai_match = re.search(thai_pattern, cleaned_text, re.IGNORECASE)
+        if thai_match:
+            amount = thai_match.group(2)
+        else:
+            # Fallback to general pattern
+            general_pattern = r'\b\d+\.\d{2}\b'
+            amounts = re.findall(general_pattern, cleaned_text)
+            if amounts:
+                amount = max(amounts, key=lambda x: float(x))
+
+        return jsonify(
+            success=bool(amount),
+            amount=amount,
+            text=text[:300] + "..." if text else ""
+        )
+
+    except Exception as e:
+        app.logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+        return jsonify(success=False, error="Internal server error"), 500
