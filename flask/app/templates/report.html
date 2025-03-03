@@ -283,17 +283,53 @@ function showReport() {
 
 document.getElementById('showReportBtn').addEventListener('click', showReport);
 
+  // ฟังก์ชันคำนวณช่วงวันที่ตาม filter
+function getDateRange() {
+  const filterType = document.getElementById("filter").value;
+  const dateInput = document.getElementById("date").value;
+  let currentDate = new Date(dateInput);
+  let startDate, endDate;
   
-    // กรองข้อมูลตาม transaction type, วันที่ และดึงค่า chart type จาก radio
+  if (filterType === "day") {
+    startDate = new Date(currentDate);
+    endDate = new Date(currentDate);
+  } else if (filterType === "week") {
+    const day = currentDate.getDay();
+    const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1);
+    startDate = new Date(currentDate);
+    startDate.setDate(diff);
+    endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+  } else if (filterType === "month") {
+    startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+  } else if (filterType === "year") {
+    startDate = new Date(currentDate.getFullYear(), 0, 1);
+    endDate = new Date(currentDate.getFullYear(), 11, 31);
+  }
+  
+  // แปลงวันที่ให้เป็น string ในรูปแบบ YYYY-MM-DD
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  
+  return { start: formatDate(startDate), end: formatDate(endDate) };
+}  
+
+  // ปรับปรุงฟังก์ชัน filterTransactions ให้ใช้ช่วงวันที่ตาม filter
   function filterTransactions(data) {
-    const transactionTypeEls = document.getElementsByName('transactionType');
-    const chartType = document.querySelector('input[name="chartType"]:checked').value;
-    let selectedTransactionType = 'Both';
+  const transactionTypeEls = document.getElementsByName('transactionType');
+  const chartType = document.querySelector('input[name="chartType"]:checked').value;
+  let selectedTransactionType = 'Both';
 
-    transactionTypeEls.forEach(el => {
-      if (el.checked) selectedTransactionType = el.value;
-    });
+  transactionTypeEls.forEach(el => {
+    if (el.checked) selectedTransactionType = el.value;
+  });
 
+    const filterType = document.getElementById("filter").value;
     const selectedDate = document.getElementById('date').value;
     let filtered = data;
 
@@ -302,9 +338,12 @@ document.getElementById('showReportBtn').addEventListener('click', showReport);
       filtered = filtered.filter(t => t.transaction_type.toLowerCase() === selectedTransactionType.toLowerCase());
     }
 
-    // กรองตามวันที่ (ในทุกกรณี)
-    if (selectedDate) {
+    // กรองตามวันที่: ถ้า filter เป็น "day" ให้เปรียบเทียบเท่ากับ แต่ถ้าเป็น week, month, year ให้ใช้ช่วงวันที่
+    if (filterType === 'day') {
       filtered = filtered.filter(t => t.transaction_date === selectedDate);
+    } else {
+      const { start, end } = getDateRange();
+      filtered = filtered.filter(t => t.transaction_date >= start && t.transaction_date <= end);
     }
 
     return { filtered, chartType, transactionType: selectedTransactionType };
@@ -370,7 +409,7 @@ document.getElementById('showReportBtn').addEventListener('click', showReport);
       if (incomeTotal === 0 && expenseTotal === 0) {
         if (myChart) myChart.destroy();
         document.getElementById('myChart').style.display = "none";
-        chartMessageEl.innerHTML = '<p class="center">Today there is no income or expenses.</p>';
+        chartMessageEl.innerHTML = '<p class="center">there is no income or expenses.</p>';
       } else {
         document.getElementById('myChart').style.display = "block";
         chartMessageEl.innerHTML = "";
@@ -382,7 +421,7 @@ document.getElementById('showReportBtn').addEventListener('click', showReport);
       if (totalAmount === 0) {
         if (myChart) myChart.destroy();
         document.getElementById('myChart').style.display = "none";
-        chartMessageEl.innerHTML = `<p class="center">No ${transactionType} Today.</p>`;
+        chartMessageEl.innerHTML = `<p class="center">No ${transactionType}.</p>`;
       } else {
         document.getElementById('myChart').style.display = "block";
         chartMessageEl.innerHTML = "";
