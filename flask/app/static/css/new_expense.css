@@ -113,9 +113,12 @@ body {
 .btn-custom {
   width: 74px;
   background-color: #dddbf8 !important;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 10px;
   font-weight: 600 !important;
+}
+
+.btn-custom:hover {
+  background-color: #c9c5f8 !important;
 }
 
 #ocrResult {
