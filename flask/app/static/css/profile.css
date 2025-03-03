@@ -92,19 +92,6 @@ body {
   background-position: center;
 }
 
-.plus-icon {
-  font-size: 56px;
-  color: #777;
-}
-
-.profile-image input[type="file"] {
-  opacity: 0;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-}
-
 /* username and email*/
 h1 {
   font-family: 'Montserrat', sans-serif;

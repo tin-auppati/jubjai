@@ -82,6 +82,12 @@
         <!-- Tabs for Income/Expense -->
         <ul class="nav nav-tabs mb-3 d-flex">
             <li class="nav-item">
+                <a class="nav-link {% if transaction_type == 'all' %}active{% endif %}" 
+                    href="{{ url_for('categories_management', transaction_type='all') }}">
+                    All Categories
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {% if transaction_type == 'income' %}active{% endif %}"
                     href="{{ url_for('categories_management', transaction_type='income') }}">
                     Income

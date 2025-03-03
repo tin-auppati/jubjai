@@ -23,8 +23,7 @@
           <li>
             <a href="{{ url_for('users_profile') }}" title="Profile">
               <span class="icon" id="sidebarProfileIcon">
-                <img src="{{ current_user.avatar_url}}"
-                     alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                <img src="{{ current_user.avatar_url}}" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
               </span>
               <span class="text">Profile</span>
             </a>
@@ -79,65 +78,16 @@
 
     <!-- Profile Container -->
     <div class="profile-container">
-        <form action="{{ url_for('upload_profile') }}" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div class="profile-image" id="profileImage" 
-                 style="background-image: url('{{ current_user.avatar_url if current_user.avatar_url else profile_image }}');">
-                <span class="plus-icon" id="plusSign">+</span>
-                <input type="file" name="file" id="upload" accept="image/*">
-            </div>
-        </form>
-        
-        <h1 id="welcome">Welcome {{ current_user.name }}</h1>
-        <p id="email">Email: {{ current_user.email }}</p>
+      <form action="{{ url_for('users_profile') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <div class="profile-image" id="profileImage" 
+          style="background-image: url('{{ current_user.avatar_url}}')"></div>
+      </form>
+  
+      <h1 id="welcome">Welcome {{ current_user.name }}</h1>
+      <p id="email">Email: {{ current_user.email }}</p>
     </div>
-
-  <script>
-    // add image profile and side bar profile
-    document.addEventListener("DOMContentLoaded", function () {
-    const uploadInput = document.getElementById("upload");
-    const profileImage = document.getElementById("profileImage");
-    const sidebarProfileIcon = document.getElementById("sidebarProfileIcon");
-    const plusSign = document.getElementById("plusSign");
-
-    // ซ่อน "+" ถ้ามีรูปอยู่แล้ว
-    if (profileImage.style.backgroundImage !== 'none') {
-        plusSign.style.display = "none";
-    }
-
-    uploadInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                const imageUrl = event.target.result;
-                
-                // อัปเดตรูปโปรไฟล์
-                profileImage.style.backgroundImage = `url(${imageUrl})`;
-                plusSign.style.display = "none";
-
-                // อัปเดตรูปที่ Sidebar
-                sidebarProfileIcon.innerHTML = `<img src="${imageUrl}" 
-                                                alt="Profile" style="width:40px; height:40px; border-radius:50%;">`;
-
-                // บันทึกลง localStorage
-                localStorage.setItem("profileImage", imageUrl);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // โหลดค่าจาก localStorage (กันรูปหายหลังรีโหลด)
-    const storedImage = localStorage.getItem("profileImage");
-    if (storedImage) {
-        profileImage.style.backgroundImage = `url(${storedImage})`;
-        plusSign.style.display = "none";
-        sidebarProfileIcon.innerHTML = `<img src="${storedImage}" 
-                                        alt="Profile" style="width:40px; height:40px; border-radius:50%;">`;
-    }
-});
-  </script>
-
+  
   <!-- Optional Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 

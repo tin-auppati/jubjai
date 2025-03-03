@@ -154,33 +154,10 @@ def view_jubjai_transactions():
 def users_index():
    return render_template('users/index.html')
 
-
 @app.route('/users/profile')
 @login_required
 def users_profile():
-    profile_image = current_user.avatar_url
-    return render_template('users/profile.html', profile_image=profile_image)
-
-@app.route('/users/upload_profile', methods=['POST'])
-@login_required
-def upload_profile():
-    file = request.files['file']
-    if file:
-        filename = secure_filename(file.filename)
-        upload_folder = os.path.join(app.root_path, 'static', 'uploads')
-        file_path = os.path.join(upload_folder, filename)
-        file.save(file_path)
-
-        # update avatar_url in db
-        current_user.avatar_url = url_for('static', filename=f'uploads/{filename}')
-        db.session.commit()
-
-        flash('Profile image updated!')
-        return redirect(url_for('users_profile'))
-    else:
-        flash('File type not allowed!')
-        return redirect(url_for('users_profile'))
-
+    return render_template('users/profile.html', current_user=current_user)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -847,7 +824,7 @@ def Calendar():
 @login_required
 def categories_management():
     # Possible values: "income", "expense", or None if no filter is applied
-    transaction_type = request.args.get('transaction_type')
+    transaction_type = request.args.get('transaction_type', 'all')
 
     query = Category.query.filter(
         Category.is_deleted == False,
