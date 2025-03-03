@@ -186,3 +186,16 @@ table.calendar th {
 .event-expense {
   background-color: #f4c4c4; /* แดงอ่อน */
 }
+
+.equal-dimensions {
+    height: 100%;
+  }
+
+/* Additional overrides so that the main content fits the viewport */
+.main-content {
+    min-height: 100vh;
+  }
+  /* Adjust this value as needed based on your top cards height and padding */
+  .chart-calendar-row {
+    height: calc(100vh - 200px);
+  }

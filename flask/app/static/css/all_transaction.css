@@ -12,6 +12,7 @@ body {
     overflow: hidden;
     transition: 0.5s;
     top: 0;
+    position: fixed;
 }
 
 .sidebar:hover {
@@ -71,7 +72,7 @@ body {
 .main-content {
     font-family: 'Montserrat', sans-serif;
     margin-left: 100px;
-    margin-top: 30px;
+    margin-top: 30px !important;
     margin-right: 30px;
     padding: 2rem;
     background: #fff;

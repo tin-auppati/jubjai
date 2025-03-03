@@ -1,111 +1,139 @@
+.body{
+  font-family: 'Montserrat', sans-serif;
+} 
+ 
  /* ===== Calendar Styles ===== */
+ .main-content {
+   display: flex;
+   margin-left: 230px;
+   margin-top: 30px;
+   margin-right: 160px;
+   justify-content: center;
+ }
+
+ .custom-btn {
+  border: none;
+  background-color: #fff0f8; 
+ }
+
  table.calendar {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 10px;
-  }
-  table.calendar th,
-  table.calendar td {
-    border: 1px solid #ccc;
-    text-align: start;
-    padding: 5px;
-    width: 14.28%; /* 100/7 = ~14.28% */
-    height: 90px;
-    vertical-align: top;
-  }
-  table.calendar th {
-    background: #eee;
-    padding: 5px;
-  }
-  
-  /* กล่องแสดง Event แต่ละอัน */
-  .event {
-    margin: 2px 0;
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    line-height: 1.2rem;
-  }
-  .event-income {
-    background-color: #c4f4c4; /* เขียวอ่อน */
-  }
-  .event-expense {
-    background-color: #f4c4c4; /* แดงอ่อน */
-  }
+   border-collapse: collapse;
+   width: 100%;
+ }
 
-/* เพิ่ม CSS สำหรับปฏิทินและ Modal */
-.calendar {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-  }
-  
-  .calendar td {
-    height: 100px;
-    vertical-align: top;
-    padding: 5px;
-    border: 1px solid #dee2e6;
-    transition: background-color 0.2s;
-  }
+ table.calendar th,
+ table.calendar td {
+   border: 1px solid #ccc;
+   text-align: start;
+   padding: 5px;
+   width: 14.28%;
+   /* 100/7 = ~14.28% */
+   height: 90px;
+   vertical-align: top;
+ }
 
-  .calendar td.has-transaction {
-    background-color: #f8f9fa;
-    cursor: pointer;
-    position: relative;
-  }
+ table.calendar th {
+   background: #eee;
+   padding: 5px;
+ }
 
-  .calendar td.has-transaction:hover {
-    background-color: #e9ecef;
-  }
+ /* กล่องแสดง Event แต่ละอัน */
+ .event {
+   margin: 2px 0;
+   padding: 2px 4px;
+   border-radius: 4px;
+   font-size: 0.8rem;
+   line-height: 1.2rem;
+ }
 
-  .event-badge {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    font-size: 0.8em;
-    padding: 2px 5px;
-    border-radius: 3px;
-  }
+ .event-income {
+   background-color: #c4f4c4;
+   /* เขียวอ่อน */
+ }
 
-  .income-badge {
-    color: #155724;
-  }
+ .event-expense {
+   background-color: #f4c4c4;
+   /* แดงอ่อน */
+ }
 
-  .expense-badge {
-    color: #721c24;
-  }
+ /* เพิ่ม CSS สำหรับปฏิทินและ Modal */
+ .calendar {
+   width: 100%;
+   table-layout: fixed;
+   border-collapse: collapse;
+ }
 
-  .modal-summary {
-    font-size: 1.1rem;
-  }
+ .calendar td {
+   height: 100px;
+   vertical-align: top;
+   padding: 5px;
+   border: 1px solid #dee2e6;
+   transition: background-color 0.2s;
+ }
 
-  .modal-summary strong {
-    display: inline-block;
-    width: 100px;
-  }
+ .calendar td.has-transaction {
+   background-color: #f8f9fa;
+   cursor: pointer;
+   position: relative;
+ }
 
-  .calendar {
-    width: 100%;
-    height: 70vh;
-  }
-  .calendar-day {
-    height: 120px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    position: relative;
-  }
-  .calendar-day:hover {
-    background-color: #f8f9fa;
-  }
-  .income-badge {
-    background-color: #d4edda;
-    color: #155724;
-  }
-  .expense-badge {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-  .transaction-list {
-    max-height: 300px;
-    overflow-y: auto;
-  }
+ .calendar td.has-transaction:hover {
+   background-color: #e9ecef;
+ }
+
+ .event-badge {
+   position: absolute;
+   bottom: 5px;
+   right: 5px;
+   font-size: 0.8em;
+   padding: 2px 5px;
+   border-radius: 3px;
+ }
+
+ .income-badge {
+   color: #155724;
+ }
+
+ .expense-badge {
+   color: #721c24;
+ }
+
+ .modal-summary {
+   font-size: 1.1rem;
+ }
+
+ .modal-summary strong {
+   display: inline-block;
+   width: 100px;
+ }
+
+ .calendar {
+   width: 100%;
+   height: 70vh;
+ }
+
+ .calendar-day {
+   height: 120px;
+   cursor: pointer;
+   transition: background-color 0.2s;
+   position: relative;
+ }
+
+ .calendar-day:hover {
+   background-color: #fff0f8;
+ }
+
+ .income-badge {
+   background-color: #d4edda;
+   color: #155724;
+ }
+
+ .expense-badge {
+   background-color: #f8d7da;
+   color: #721c24;
+ }
+
+ .transaction-list {
+   max-height: 300px;
+   overflow-y: auto;
+ }

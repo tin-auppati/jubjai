@@ -26,11 +26,10 @@
         <ul>
           <li>
             <a href="{{ url_for('users_profile') }}" title="Profile">
-              <span class="icon" id="sidebarProfileIcon">
-                <img src="{{ current_user.avatar_url}}"
-                     alt="Profile" style="width:40px; height:40px; border-radius:50%;">
-              </span>
-              <span class="text">Profile</span>
+                <span class="icon" id="sidebarProfileIcon">
+                  <img src="{{ current_user.avatar_url}}" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                </span>
+                <span class="text">Profile</span>
             </a>
           </li>
           <li>
@@ -43,18 +42,6 @@
             <a href="{{ url_for('all_transactions') }}" title="All_transaction">
               <span class="icon"><i class="bi bi-clipboard2-fill"></i></span>
               <span class="text">Transaction</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ url_for('create_transactions', transaction_type='income') }}" title="Income">
-              <span class="icon"><i class="bi bi-graph-up"></i></span>
-              <span class="text">Income</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ url_for('create_transactions', transaction_type='expense') }}" title="Expense">
-              <span class="icon"><i class="bi bi-graph-down"></i></span>
-              <span class="text">Expense</span>
             </a>
           </li>
           <li>
@@ -153,7 +140,6 @@
                     <button type="button" class="btn btn-light me-2" id="nextDate">
                         <i class="bi bi-chevron-right"></i>
                     </button>
-                    <button type="submit" class="btn btn-secondary">Apply</button>
                 </form>
             </div>
             <div class="row">
@@ -469,6 +455,7 @@
         function adjustDate(increment) {
             const filterType = document.getElementById("filter").value;
             const dateInput = document.getElementById("date");
+            const form = dateInput.closest("form");
             let currentDate = dateInput.value ? new Date(dateInput.value + "T00:00:00") : new Date();
             let baseDate;
             if (filterType === "day") {
@@ -494,6 +481,8 @@
             }
             dateInput.value = formatLocalDate(baseDate);
             updateRangeDisplay();
+
+            form.submit();
         }
 
         document.getElementById("prevDate").addEventListener("click", function () {
@@ -505,6 +494,7 @@
         document.getElementById("date").addEventListener("change", updateRangeDisplay);
         document.getElementById("filter").addEventListener("change", updateRangeDisplay);
         updateRangeDisplay();
+
     </script>
 
 </body>

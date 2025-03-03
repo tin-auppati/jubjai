@@ -13,7 +13,6 @@ from app import app
 from app import db
 from app import login_manager
 from app import oauth
-from datetime import datetime
 from decimal import Decimal
 import os
 from PIL import Image
@@ -24,7 +23,7 @@ from sqlalchemy import func, extract
 from datetime import timedelta
 from app.models.jubjai import User,Category,Transaction
 import calendar as cal
-from datetime import datetime, date
+from datetime import datetime, date , timedelta
 from zoneinfo import ZoneInfo
 from sqlalchemy.orm import joinedload
 
@@ -150,33 +149,10 @@ def view_jubjai_transactions():
 def users_index():
    return render_template('users/index.html')
 
-
 @app.route('/users/profile')
 @login_required
 def users_profile():
-    profile_image = current_user.avatar_url
-    return render_template('users/profile.html', profile_image=profile_image)
-
-@app.route('/users/upload_profile', methods=['POST'])
-@login_required
-def upload_profile():
-    file = request.files['file']
-    if file:
-        filename = secure_filename(file.filename)
-        upload_folder = os.path.join(app.root_path, 'static', 'uploads')
-        file_path = os.path.join(upload_folder, filename)
-        file.save(file_path)
-
-        # update avatar_url in db
-        current_user.avatar_url = url_for('static', filename=f'uploads/{filename}')
-        db.session.commit()
-
-        flash('Profile image updated!')
-        return redirect(url_for('users_profile'))
-    else:
-        flash('File type not allowed!')
-        return redirect(url_for('users_profile'))
-
+    return render_template('users/profile.html', current_user=current_user)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -407,35 +383,35 @@ def categories():
         
         icon_list = [
             {"name": "Food", "url": "https://cdn-icons-png.flaticon.com/512/1046/1046857.png"},
-            {"name": "Travel", "url": "https://cdn-icons-png.flaticon.com/512/2922/2922510.png"},
-            {"name": "Shopping", "url": "https://cdn-icons-png.flaticon.com/512/1041/1041914.png"},
-            {"name": "Health", "url": "https://cdn-icons-png.flaticon.com/512/2922/2922561.png"},
-            {"name": "Entertainment", "url": "https://cdn-icons-png.flaticon.com/512/733/733585.png"},
-            {"name": "Bills", "url": "https://cdn-icons-png.flaticon.com/512/1256/1256650.png"},
-            {"name": "Education", "url": "https://cdn-icons-png.flaticon.com/512/3143/3143648.png"},
-            {"name": "Groceries", "url": "https://cdn-icons-png.flaticon.com/512/1046/1046857.png"},
-            {"name": "Utilities", "url": "https://cdn-icons-png.flaticon.com/512/1087/1087929.png"},
-            {"name": "Rent", "url": "https://cdn-icons-png.flaticon.com/512/2933/2933606.png"},
-            {"name": "Coffee", "url": "https://cdn-icons-png.flaticon.com/512/3022/3022634.png"},
-            {"name": "Gifts", "url": "https://cdn-icons-png.flaticon.com/512/1055/1055672.png"},
-            {"name": "Pets", "url": "https://cdn-icons-png.flaticon.com/512/616/616490.png"},
-            {"name": "Transport", "url": "https://cdn-icons-png.flaticon.com/512/149/149060.png"},
-            {"name": "Insurance", "url": "https://cdn-icons-png.flaticon.com/512/2972/2972185.png"},
-            {"name": "Subscriptions", "url": "https://cdn-icons-png.flaticon.com/512/1055/1055687.png"},
-            {"name": "Internet", "url": "https://cdn-icons-png.flaticon.com/512/1006/1006771.png"},
-            {"name": "Mobile", "url": "https://cdn-icons-png.flaticon.com/512/1087/1087926.png"},
-            {"name": "Sports", "url": "https://cdn-icons-png.flaticon.com/512/1040/1040232.png"},
-            {"name": "Books", "url": "https://cdn-icons-png.flaticon.com/512/2991/2991156.png"},
-            {"name": "Office", "url": "https://cdn-icons-png.flaticon.com/512/3106/3106874.png"},
-            {"name": "Car", "url": "https://cdn-icons-png.flaticon.com/512/743/743007.png"},
-            {"name": "Taxi", "url": "https://cdn-icons-png.flaticon.com/512/744/744922.png"},
-            {"name": "Parking", "url": "https://cdn-icons-png.flaticon.com/512/684/684908.png"},
-            {"name": "Maintenance", "url": "https://cdn-icons-png.flaticon.com/512/1995/1995574.png"},
-            {"name": "Entertainment 2", "url": "https://cdn-icons-png.flaticon.com/512/3135/3135755.png"},
-            {"name": "Charity", "url": "https://cdn-icons-png.flaticon.com/512/2917/2917995.png"},
-            {"name": "Loan", "url": "https://cdn-icons-png.flaticon.com/512/2838/2838921.png"},
-            {"name": "Savings", "url": "https://cdn-icons-png.flaticon.com/512/263/263142.png"},
-            {"name": "Miscellaneous", "url": "https://cdn-icons-png.flaticon.com/512/2917/2917997.png"}
+            {"name": "Travel", "url": "https://cdn-icons-png.flaticon.com/512/9482/9482066.png"},
+            {"name": "Shopping", "url": "https://cdn-icons-png.flaticon.com/512/3081/3081415.png"},
+            {"name": "Health", "url": "https://cdn-icons-png.flaticon.com/512/2731/2731908.png"},
+            {"name": "Entertainment", "url": "https://cdn-icons-png.flaticon.com/512/1179/1179120.png"},
+            {"name": "Bills", "url": "https://cdn-icons-png.flaticon.com/512/8583/8583679.png"},
+            {"name": "Education", "url": "https://cdn-icons-png.flaticon.com/512/2995/2995341.png"},
+            {"name": "Groceries", "url": "https://cdn-icons-png.flaticon.com/512/1261/1261052.png"},
+            {"name": "Utilities", "url": "https://cdn-icons-png.flaticon.com/512/6630/6630297.png"},
+            {"name": "Rent", "url": "https://cdn-icons-png.flaticon.com/512/602/602320.png"},
+            {"name": "Coffee", "url": "https://cdn-icons-png.flaticon.com/512/751/751621.png"},
+            {"name": "Gifts", "url": "https://cdn-icons-png.flaticon.com/512/1139/1139931.png"},
+            {"name": "Pets", "url": "https://cdn-icons-png.flaticon.com/512/3737/3737711.png"},
+            {"name": "Transport", "url": "https://cdn-icons-png.flaticon.com/512/3124/3124296.png"},
+            {"name": "Insurance", "url": "https://cdn-icons-png.flaticon.com/512/1962/1962589.png"},
+            {"name": "Subscriptions", "url": "https://cdn-icons-png.flaticon.com/512/4730/4730393.png"},
+            {"name": "Internet", "url": "https://cdn-icons-png.flaticon.com/512/3208/3208585.png"},
+            {"name": "Mobile", "url": "https://cdn-icons-png.flaticon.com/512/545/545245.png"},
+            {"name": "Sports", "url": "https://cdn-icons-png.flaticon.com/512/1198/1198416.png"},
+            {"name": "Books", "url": "https://cdn-icons-png.flaticon.com/512/3771/3771284.png"},
+            {"name": "Office", "url": "https://cdn-icons-png.flaticon.com/512/1599/1599910.png"},
+            {"name": "Car", "url": "https://cdn-icons-png.flaticon.com/512/2736/2736918.png"},
+            {"name": "Taxi", "url": "https://cdn-icons-png.flaticon.com/512/1023/1023386.png"},
+            {"name": "Parking", "url": "https://cdn-icons-png.flaticon.com/512/708/708949.png"},
+            {"name": "Maintenance", "url": "https://cdn-icons-png.flaticon.com/512/2778/2778810.png"},
+            {"name": "Entertainment 2", "url": "https://cdn-icons-png.flaticon.com/512/2972/2972351.png"},
+            {"name": "Charity", "url": "https://cdn-icons-png.flaticon.com/512/2871/2871405.png"},
+            {"name": "Loan", "url": "https://cdn-icons-png.flaticon.com/512/3130/3130494.png"},
+            {"name": "Savings", "url": "https://cdn-icons-png.flaticon.com/512/9018/9018937.png"},
+            {"name": "Miscellaneous", "url": "https://cdn-icons-png.flaticon.com/512/847/847476.png"}
         ]
         return render_template('categories.html', icon_list=icon_list)
 
@@ -671,7 +647,68 @@ def edit_transaction(transaction_id):
 @login_required
 @app.route('/homepage')
 def homepage():
-    return render_template('homepage.html')
+    # Sum all income transactions
+    income_sum = (
+        db.session.query(func.sum(Transaction.amount))
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.is_deleted == False,
+            Transaction.transaction_type == 'income'
+        )
+        .scalar()
+        or 0.0
+    )
+
+    # Sum all expense transactions
+    expense_sum = (
+        db.session.query(func.sum(Transaction.amount))
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.is_deleted == False,
+            Transaction.transaction_type == 'expense'
+        )
+        .scalar()
+        or 0.0
+    )
+
+    # Net total (Income - Expense)
+    total_sum = income_sum - expense_sum
+
+    # Existing code for chart data (e.g. last 7 days expenses)
+    tz = ZoneInfo("Asia/Bangkok")
+    today = datetime.now(tz).date()
+    start_date = today - timedelta(days=6)
+
+    transactions = Transaction.query.filter(
+        Transaction.user_id == current_user.id,
+        Transaction.is_deleted == False,
+        Transaction.transaction_date.between(start_date, today)
+    ).all()
+
+    expense_data = {}
+    display_labels = []
+    for i in range(7):
+        day = start_date + timedelta(days=i)
+        date_key = day.strftime('%Y-%m-%d')
+        expense_data[date_key] = 0.0
+        display_labels.append(f"{day.day} {day.strftime('%a')}")
+
+    for trans in transactions:
+        if trans.transaction_type == 'expense':
+            day_str = trans.transaction_date.strftime('%Y-%m-%d')
+            if day_str in expense_data:
+                expense_data[day_str] += float(trans.amount)
+
+    data_values = list(expense_data.values())
+
+    return render_template(
+        'homepage.html',
+        labels=display_labels,
+        data_values=data_values,
+        income_sum=income_sum,
+        expense_sum=expense_sum,
+        total_sum=total_sum
+    )
 
 def get_user_transactions(user_id, start_date=None, end_date=None):
     query = Transaction.query.filter(
@@ -729,12 +766,14 @@ def report():
         transaction_data = t.to_dict()
         transaction_data['category'] = category_map.get(t.category_id, {})
         transactions.append(transaction_data)
+
+    tz = ZoneInfo("Asia/Bangkok")
     
     return render_template("report.html", 
                            transactions=transactions,
                            filter_type=filter_type, 
                            date_range=date_range, 
-                           current_date=datetime.today().strftime('%Y-%m-%d'))
+                           current_date=datetime.now(tz).date().strftime('%Y-%m-%d'))
 
 @login_required
 @app.route('/Calendar', methods=['GET'])
@@ -780,7 +819,7 @@ def Calendar():
 @login_required
 def categories_management():
     # Possible values: "income", "expense", or None if no filter is applied
-    transaction_type = request.args.get('transaction_type')
+    transaction_type = request.args.get('transaction_type', 'all')
 
     query = Category.query.filter(
         Category.is_deleted == False,
