@@ -25,7 +25,7 @@ from app.models.jubjai import User,Category,Transaction
 import calendar as cal
 from datetime import datetime, date , timedelta
 from zoneinfo import ZoneInfo
-from sqlalchemy.orm import joinedloadfrom 
+from sqlalchemy.orm import joinedload
 import logging
 
 thai_tz = ZoneInfo('Asia/Bangkok')
