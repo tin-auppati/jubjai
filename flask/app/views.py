@@ -446,14 +446,14 @@ def allowed_file(filename):
 @login_required
 def all_transactions():
     transaction_type = request.args.get('transaction_type', 'all')
-    filter_type = request.args.get('filter', 'month')
+    filter_type = request.args.get('filter', 'day')
     date_str = request.args.get('date')
     
     try:
         # Default selected_date is used for the standard filters
-        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.today().date()
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now(thai_tz).date()
     except ValueError:
-        selected_date = datetime.today().date()
+        selected_date = datetime.now(thai_tz).date()
 
     query = Transaction.query.filter(
         Transaction.is_deleted == False,
@@ -490,11 +490,16 @@ def all_transactions():
                 custom_end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
         except ValueError:
             # If conversion fails, default to today's date (or handle as needed)
-            custom_start_date = custom_start_date or datetime.today().date()
-            custom_end_date = custom_end_date or datetime.today().date()
+            custom_start_date = custom_start_date or datetime.now(thai_tz).date()
+            custom_end_date = custom_end_date or datetime.now(thai_tz).date()
 
         if custom_start_date and custom_end_date:
-            query = query.filter(Transaction.transaction_date.between(custom_start_date, custom_end_date))
+        # If transaction_date is datetime, adjust the end date to include the entire day:
+            end_date_next = custom_end_date + timedelta(days=1)
+            query = query.filter(
+                Transaction.transaction_date >= custom_start_date,
+                Transaction.transaction_date < end_date_next
+            )
         elif custom_start_date:
             query = query.filter(Transaction.transaction_date >= custom_start_date)
         elif custom_end_date:
@@ -518,7 +523,7 @@ def all_transactions():
             total_income += t.amount
     net_total = total_income - total_expense
 
-    current_date = datetime.today().strftime('%Y-%m-%d')
+    current_date = datetime.now(thai_tz).strftime('%Y-%m-%d')
 
     return render_template(
         'all_transactions.html',
@@ -728,9 +733,9 @@ def report():
     date_str = request.args.get('date')
     
     try:
-        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.today().date()
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now(thai_tz).date()
     except ValueError:
-        selected_date = datetime.today().date()
+        selected_date = datetime.now(thai_tz).date()
 
     if filter_type == 'day':
         date_range = (selected_date, selected_date)
@@ -810,7 +815,7 @@ def Calendar():
         except Exception as e:
             return jsonify({'error': str(e)}), 400
 
-    today = datetime.today()
+    today = datetime.now(thai_tz)
     return render_template('calendar.html',
                            current_year=today.year,
                            current_month=today.month)
@@ -871,7 +876,7 @@ def edit_category(category_id):
 
 
 def compute_budget_period(duration_type, base_date=None, custom_start=None, custom_end=None):
-    base_date = base_date or datetime.today().date()
+    base_date = base_date or datetime.now(thai_tz).date()
     if duration_type == 'week':
         start_date = base_date - timedelta(days=base_date.weekday())
         end_date = start_date + timedelta(days=6)
@@ -971,7 +976,7 @@ def update_category_budget():
     duration_type = request.form.get('duration_type')
     custom_start = request.form.get('custom_start_date')
     custom_end = request.form.get('custom_end_date')
-    base_date = datetime.today().date() 
+    base_date = datetime.now(thai_tz).date() 
 
     start_date, end_date = compute_budget_period(duration_type, base_date, custom_start, custom_end)
 
@@ -998,7 +1003,7 @@ def edit_category_budget():
     duration_type = request.form.get('duration_type')
     custom_start = request.form.get('custom_start_date')
     custom_end = request.form.get('custom_end_date')
-    base_date = datetime.today().date()
+    base_date = datetime.now(thai_tz).date()
     
     try:
         new_budget_decimal = Decimal(new_budget)
