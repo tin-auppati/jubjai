@@ -140,23 +140,25 @@
 
     // ฟังก์ชันดึงข้อมูลจาก API
     async function fetchTransactions(year, month, day = null) {
-      const params = new URLSearchParams({
-        type: 'transactions',
-        year: year,
-        month: month + 1
-      });
-      if(day) params.append('day', day);
-      
-    try {
-        const url = `/Calendar?${params.toString()}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Network error');
-        return await response.json();
-    } catch (error) {
-        console.error('Error:', error);
-        return [];
-    }
-    }
+  const params = new URLSearchParams({
+    type: 'transactions',
+    year: year,
+    month: month + 1,
+    _: Date.now() // เพิ่มพารามิเตอร์ timestamp ป้องกันการแคช
+  });
+  
+  if(day) params.append('day', day);
+  
+  try {
+    const url = `/Calendar?${params.toString()}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network error');
+    return await response.json();
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
+}
 
     // ฟังก์ชันสร้างปฏิทิน
     async function renderCalendar() {
