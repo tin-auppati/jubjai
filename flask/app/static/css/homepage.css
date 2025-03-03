@@ -267,6 +267,7 @@ table.calendar th {
 /* Additional overrides so that the main content fits the viewport */
 .main-content {
     min-height: 100vh;
+    padding-bottom: 0;
 }
 
 /* Adjust this value as needed based on your top cards height and padding */
