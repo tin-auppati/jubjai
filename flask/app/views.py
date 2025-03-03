@@ -797,8 +797,7 @@ def Calendar():
                 date_obj = date(year, month, int(day))
                 transactions = Transaction.query.filter(
                     Transaction.user_id == current_user.id,
-                    Transaction.transaction_date == date_obj,
-                    Transaction.is_deleted == False
+                    Transaction.transaction_date == date_obj
                 ).all()
                 
                 return jsonify({
@@ -1062,29 +1061,34 @@ def handle_exception(e):
     ), 500
 
 def normalize_amount_string(s: str) -> str:
-    """
-    Normalizes a number string where earlier separators (',' or '.') are treated as thousands
-    separators and the last separator is the decimal point.
-    E.g., "1.000.000.00" becomes "1000000.00"
-    """
     s = s.strip()
-    # Identify the last occurrence of either '.' or ','
     last_dot = s.rfind('.')
     last_comma = s.rfind(',')
     last_sep = max(last_dot, last_comma)
     if last_sep == -1:
-        return s  # No decimal separator found
+        return s
     integer_part = s[:last_sep]
     decimal_part = s[last_sep+1:]
-    # Remove any commas or periods from the integer part
     integer_part = re.sub(r'[.,]', '', integer_part)
     return integer_part + '.' + decimal_part
+
+def remove_thai_inner_spaces(text: str) -> str:
+    pattern = re.compile(r'([\u0E00-\u0E7F])\s+([\u0E00-\u0E7F])')
+    while pattern.search(text):
+        text = pattern.sub(r'\1\2', text)
+    return text
+
+def remove_english_inner_spaces(text: str) -> str:
+    """Removes spaces between English letters to fix OCR errors like 'T o t a l' -> 'Total'."""
+    pattern = re.compile(r'([A-Za-z])\s+([A-Za-z])')
+    while pattern.search(text):
+        text = pattern.sub(r'\1\2', text)
+    return text
 
 @app.route('/process-ocr', methods=['POST'])
 @login_required
 def process_ocr():
     try:
-        # Validate request
         if 'slip_image' not in request.files:
             return jsonify(success=False, error="No file uploaded"), 400
 
@@ -1092,8 +1096,7 @@ def process_ocr():
         if not file or file.filename == '':
             return jsonify(success=False, error="No file selected"), 400
 
-        # Validate file size and type
-        file.seek(0, 2)  # Move to end of file
+        file.seek(0, 2)
         file_size = file.tell()
         file.seek(0)
         if file_size > 5 * 1024 * 1024:
@@ -1102,7 +1105,6 @@ def process_ocr():
         if file.mimetype not in {'image/jpeg', 'image/png', 'application/pdf'}:
             return jsonify(success=False, error="Unsupported file type"), 400
 
-        # Process file content
         try:
             if file.mimetype.startswith('image/'):
                 img = Image.open(file.stream)
@@ -1114,52 +1116,60 @@ def process_ocr():
             app.logger.error(f"Processing error: {str(e)}")
             return jsonify(success=False, error="Invalid file content"), 400
 
-        # Normalize whitespace in the OCR text
-        cleaned_text = re.sub(r'\s+', ' ', text)
+        # Clean text: normalize spaces and remove inner spaces in Thai and English
+        cleaned_text = re.sub(r'\s+', ' ', text).strip()
+        cleaned_text = remove_thai_inner_spaces(cleaned_text)
+        cleaned_text = remove_english_inner_spaces(cleaned_text)
 
         amount = None
 
-        # Specific pattern for Thai slips with amount after header.
-        # The pattern accepts numbers with optional comma or period as thousands separators
-        # and a final separator (comma or period) with exactly two decimal digits.
+        # Thai pattern (existing)
         thai_pattern = r'''
-            (?:                         # Match any of these keywords
-                จำนวนเงิน|จ[ํ']านวนเงิน|ยอดรวม|
-                จำนวน|จ[ํ']านวน|โอนเงินสำเร็จ
+            (?:จำนวนเงิน|จ[ํ']านวนเงิน|ยอดรวม|จำนวน|จ[ํ']านวน|โอนเงินสำเร็จ)
+            [\s:*]*
+            (
+                (?:\d{1,3}(?:[,.]\d{3})*|\d+)
+                [.,]\d{2}
             )
-            [\s:*]*                     # Allow colons, asterisks, and spaces
-            (                           # Capture the amount
-                (?:
-                    \d{1,3}(?:[,.]\d{3})*|\d+
-                )
-                [.,]\d{2}                 # Decimal separator with exactly two digits
-            )
-            (?:                         # Optional currency suffix
-                \s*บาท|\s*THB|\s*บาท|
-                \s*สตางค์|\s*Baht
-            )?
+            (?:บาท|THB|สตางค์|Baht)?
         '''
 
-        # Find matches using the main pattern
-        amount_matches = re.findall(thai_pattern, cleaned_text, re.VERBOSE | re.IGNORECASE)
+        # English pattern (new)
+        english_pattern = r'''
+            (?:
+                T\s*R\s*A\s*N\s*S\s*F\s*E\s*R|  # Add "Transfer"
+                T\s*O\s*T\s*A\s*L|
+                A\s*M\s*O\s*U\s*N\s*T|
+                ...
+            )
+            [\s:*]+
+            (?:[\$£€¥฿]?)  # Optional currency symbols
+            (
+                (?:\d{1,3}(?:[.,]\d{3})*|\d+)
+                [.,]\d{2}
+            )
+            (?:USD|EUR|GBP|THB|BAHT)?
+        '''
+
+        # Find matches in both Thai and English
+        thai_matches = re.findall(thai_pattern, cleaned_text, re.VERBOSE | re.IGNORECASE)
+        english_matches = re.findall(english_pattern, cleaned_text, re.VERBOSE | re.IGNORECASE)
+        all_matches = thai_matches + english_matches
 
         valid_amounts = []
-        for m in amount_matches:
-            # Normalize the matched amount string (e.g., "1.000.000.00" → "1000000.00")
+        for m in all_matches:
             normalized_str = normalize_amount_string(m)
             try:
                 val = float(normalized_str)
-                # Only consider amounts greater than 0 and within the allowed limit
                 if 0 < val <= 100000000.00:
                     valid_amounts.append(val)
             except ValueError:
                 pass
 
         if valid_amounts:
-            # Get the largest valid amount
             amount = "{:.2f}".format(max(valid_amounts))
         else:
-            # Fallback: look for any decimal with 2 digits (using a similar pattern)
+            # Fallback: look for any decimal with 2 digits
             decimal_matches = re.findall(r'\b(?:\d{1,3}(?:[,.]\d{3})*|\d+)[.,]\d{2}\b', cleaned_text)
             candidates = []
             for dm in decimal_matches:
