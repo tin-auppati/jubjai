@@ -45,28 +45,95 @@ def seed_db():
 
     
     # Create a sample category for the user
-    category = Category(
+    category_food = Category(
         name="Food",
         user_id=user.id,
         icon_url="https://cdn-icons-png.flaticon.com/512/1046/1046857.png",
-        description="Transactions on food and dining",
+        # description="Transactions on food and dining",
         transaction_type="expense",
-        limit=500.00
+        # limit=500.00 # if want limit
     )
     
-    db.session.add(category)
-    db.session.commit()  
+    db.session.add(category_food)
+    db.session.commit() 
+
+    # Create a sample category for the user
+    category_shopping = Category(
+        name="Shopping",
+        user_id=user.id,
+        icon_url="https://cdn-icons-png.flaticon.com/512/3081/3081415.png",
+        # description="",
+        transaction_type="expense",
+        # limit=500.00 # if want limit
+    )
+    
+    db.session.add(category_shopping)
+    db.session.commit() 
+
+    # Create a sample category for the user
+    category_billing = Category(
+        name="Pay the bill",
+        user_id=user.id,
+        icon_url="https://cdn-icons-png.flaticon.com/512/8583/8583679.png",
+        # description="",
+        transaction_type="expense",
+        # limit=500.00 # if want limit
+    )
+    
+    db.session.add(category_billing)
+    db.session.commit() 
+
+    # Create a sample category for the user
+    category_gift = Category(
+        name="Gift",
+        user_id=user.id,
+        icon_url="https://cdn-icons-png.flaticon.com/512/1139/1139931.png",
+        # description="",
+        transaction_type="expense",
+        # limit=500.00 # if want limit
+    )
+    
+    db.session.add(category_gift)
+    db.session.commit() 
+
+    # Create a sample category for the user
+    category_travel = Category(
+        name="Travel",
+        user_id=user.id,
+        icon_url="https://cdn-icons-png.flaticon.com/512/9482/9482066.png",
+        # description="",
+        transaction_type="expense",
+        # limit=500.00 # if want limit
+    )
+    
+    db.session.add(category_travel)
+    db.session.commit() 
+
+    # ----------------------------------------------------------
 
     category_income = Category(
         name="Income",
         user_id=user.id,
         transaction_type = "income",
-        icon_url="https://cdn-icons-png.flaticon.com/512/123/123123.png",
-        description="Income",
+        icon_url="https://cdn-icons-png.flaticon.com/512/2871/2871405.png",
+        # description="Income",
     )
     
     db.session.add(category_income)
     db.session.commit()  
+
+    category_money_saving = Category(
+        name="Money Saving",
+        user_id=user.id,
+        transaction_type = "income",
+        icon_url="https://cdn-icons-png.flaticon.com/512/9018/9018937.png",
+        # description="Income",
+    )
+    
+    db.session.add(category_money_saving)
+    db.session.commit()
+
+    # ----------------------------------------------------------
 
     
     transaction = Transaction(
@@ -75,7 +142,7 @@ def seed_db():
         description="Lunch at a restaurant",
         transaction_date=datetime.now(),
         user_id=user.id,
-        category_id=category.category_id,
+        category_id=category_food.category_id,
         transaction_type = "expense"
     )
     
