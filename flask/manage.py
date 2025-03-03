@@ -51,7 +51,7 @@ def seed_db():
         icon_url="https://cdn-icons-png.flaticon.com/512/1046/1046857.png",
         description="Transactions on food and dining",
         transaction_type="expense",
-        monthly_limit=500.00
+        limit=500.00
     )
     
     db.session.add(category)

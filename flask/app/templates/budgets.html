@@ -119,7 +119,7 @@
                 <span class="amount">{{ budget.spent_amount }}</span>
               </div>
               <div class="col text-end">
-                <span class="budget">{{ budget.monthly_limit }}</span>
+                <span class="budget">{{ budget.limit }}</span>
               </div>
             </div>
           </div>
@@ -131,7 +131,7 @@
           <div class="col text-end">
             <!-- Edit Budget Button -->
             <button class="btn edit-budget" data-bs-toggle="modal" data-bs-target="#editBudgetModal{{ budget.category_id }}"
-              data-budgetid="{{ budget.category_id }}" data-monthlylimit="{{ budget.monthly_limit }}">
+              data-budgetid="{{ budget.category_id }}" data-monthlylimit="{{ budget.limit }}">
               <i class="bi bi-pencil-square"></i>
             </button>
             <!-- Edit Budget Modal -->
@@ -157,7 +157,7 @@
                       <div class="mb-3">
                         <label for="editMonthlyLimit{{ budget.category_id }}" class="form-label">Monthly Limit</label>
                         <input type="number" step="0.01" class="form-control" id="editMonthlyLimit{{ budget.category_id }}"
-                          name="new_budget" value="{{ budget.monthly_limit }}" required>
+                          name="new_budget" value="{{ budget.limit }}" required>
                       </div>
                       <!-- Duration Selection -->
                       <div class="mb-3">

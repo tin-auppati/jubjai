@@ -41,7 +41,7 @@ class Category(db.Model, SerializerMixin):
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     icon_url = db.Column(db.String)
-    monthly_limit = db.Column(db.Numeric(10, 2))
+    limit = db.Column(db.Numeric(10, 2))
     transaction_type = db.Column(
         Enum('income', 'expense', name='category_type_enum'),
         nullable=False
@@ -52,13 +52,13 @@ class Category(db.Model, SerializerMixin):
     date_created = db.Column(db.DateTime, default=datetime.now)
     date_updated = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
-    def __init__(self, name, user_id, icon_url,transaction_type,limit_start_date= None,limit_end_date = None,description=None, monthly_limit=None, date_created=None, date_updated=None, is_deleted=False):
+    def __init__(self, name, user_id, icon_url,transaction_type,limit_start_date= None,limit_end_date = None,description=None, limit=None, date_created=None, date_updated=None, is_deleted=False):
         self.name = name
         self.description = description
         self.transaction_type = transaction_type
         self.icon_url = icon_url
         self.user_id = user_id
-        self.monthly_limit = monthly_limit
+        self.limit = limit
         self.limit_start_date = limit_start_date
         self.limit_end_date = limit_end_date
         self.date_created = date_created if date_created else datetime.now()
