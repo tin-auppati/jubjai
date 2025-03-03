@@ -188,7 +188,7 @@
               beginAtZero: true,
               ticks: {
                 callback: function(value) {
-                  return '$' + value;
+                  return '฿ ' + value;
                 }
               },
               grid: {
@@ -209,7 +209,7 @@
               callbacks: {
                 label: function(context) {
                   const val = context.parsed.y;
-                  return val === 0 ? 'No data' : `$${val} ${context.dataset.label}`;
+                  return val === 0 ? 'No data' : `฿${val} ${context.dataset.label}`;
                 }
               }
             }

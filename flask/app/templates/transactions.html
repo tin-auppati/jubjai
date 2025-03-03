@@ -394,24 +394,14 @@
         console.error('OCR Error:', error);
       }
     });
-    function formatCurrency(input) {
-      let value = input.value.replace(/,/g, '');
-      if (!isNaN(value) && value !== '') {
-        // Split into integer and decimal parts
-        let parts = value.split('.');
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        input.value = parts.length > 1 ? parts.join('.') : parts[0];
-      }
-    }
 
     // In your OCR success handler:
     if (data.amount) {
         const totalInput = document.getElementById('total');
         totalInput.value = data.amount;
-        formatNumber(totalInput);  // Add this line to format the OCR result
+        formatNumber(totalInput); 
       }
 
-      // Remove the duplicate formatCurrency function at the bottom and 
       // keep only this version:
       function formatNumber(input) {
         let value = input.value.replace(/,/g, '');
