@@ -16,7 +16,7 @@
 <body>
     <div class="container mt-4">
         <h2>Create New Category</h2>
-        <form method="POST" action="{{ url_for('categories') }}">
+        <form id="categoryForm" method="POST" action="{{ url_for('categories') }}">
             <!-- CSRF token (if using Flask-WTF) -->
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -41,32 +41,6 @@
                 <label for="description" class="form-label">Description</label>
                 <textarea class="form-control" id="description" name="description" rows="3"
                     placeholder="Enter description (optional)(40 char)" maxlength="40"></textarea>
-            </div>
-
-            <!-- Monthly Limit (Optional) -->
-            <div class="mb-3">
-                <label for="monthly_limit" class="form-label">Monthly Limit</label>
-                <input type="number" step="0.01" class="form-control" id="monthly_limit" name="monthly_limit"
-                    placeholder="Enter monthly limit (optional)">
-            </div>
-
-            <!-- Duration Selection (only enabled if Monthly Limit is provided) -->
-            <div class="mb-3">
-                <label for="durationSelect" class="form-label">Duration</label>
-                <select class="form-select" id="durationSelect" name="duration_type" disabled>
-                    <option value="week">1 Week</option>
-                    <option value="month" selected>1 Month</option>
-                    <option value="year">1 Year</option>
-                    <option value="custom">Custom</option>
-                </select>
-            </div>
-
-            <!-- Custom Duration Date Inputs -->
-            <div id="customDurationInputs" class="mb-3" style="display: none;">
-                <label for="customStartDate" class="form-label">Custom Start Date</label>
-                <input type="date" class="form-control" id="customStartDate" name="custom_start_date">
-                <label for="customEndDate" class="form-label">Custom End Date</label>
-                <input type="date" class="form-control" id="customEndDate" name="custom_end_date">
             </div>
 
             <!-- Icon Selection -->
@@ -177,7 +151,7 @@
     <!-- Icon Selection and Form Script -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // For preset icon selection
+            // Preset icon selection
             document.querySelectorAll(".icon-option").forEach(function (img) {
                 img.addEventListener("click", function () {
                     var iconUrl = this.getAttribute("data-icon-url");
@@ -193,7 +167,7 @@
                 });
             });
 
-            // When "Import New Icon" card is clicked, open the Import New Icon Modal
+            // Open Import New Icon modal when clicked
             document.getElementById("importNewIcon").addEventListener("click", function () {
                 var iconModalEl = document.getElementById("iconModal");
                 var iconModalInstance = bootstrap.Modal.getInstance(iconModalEl);
@@ -207,7 +181,7 @@
                 importModalInstance.show();
             });
 
-            // Toggle between URL and Upload methods
+            // Toggle between URL and Upload import methods
             document.getElementById("importUrl").addEventListener("change", function () {
                 document.getElementById("importUrlContainer").style.display = "block";
                 document.getElementById("importUploadContainer").style.display = "none";
@@ -235,7 +209,7 @@
                 }
             });
 
-            // Confirm import icon
+            // Confirm icon import
             document.getElementById("confirmImportIcon").addEventListener("click", function () {
                 var selectedMethod = document.querySelector('input[name="importMethod"]:checked').value;
                 if (selectedMethod === "url") {
@@ -287,48 +261,6 @@
                         .catch(err => console.error("Error uploading icon:", err));
                 }
             });
-
-            // Transaction Type: Disable monthly limit for Income and clear value
-            var transactionTypeSelect = document.getElementById("transaction_type");
-            var monthlyLimitInput = document.getElementById("monthly_limit");
-
-            function updateMonthlyLimitField() {
-                if (transactionTypeSelect.value === "income") {
-                    monthlyLimitInput.value = "";
-                    monthlyLimitInput.disabled = true;
-                    monthlyLimitInput.placeholder = "Not applicable for income";
-                } else {
-                    monthlyLimitInput.disabled = false;
-                    monthlyLimitInput.placeholder = "Enter monthly limit (optional)";
-                }
-                // Enable or disable the duration selector based on monthly limit value
-                if (monthlyLimitInput.value.trim() !== "") {
-                    document.getElementById("durationSelect").disabled = false;
-                } else {
-                    document.getElementById("durationSelect").disabled = true;
-                    // Also hide custom duration inputs if any
-                    document.getElementById("customDurationInputs").style.display = "none";
-                }
-            }
-
-            transactionTypeSelect.addEventListener("change", updateMonthlyLimitField);
-            monthlyLimitInput.addEventListener("input", updateMonthlyLimitField);
-            updateMonthlyLimitField();
-
-            // Toggle custom duration inputs based on duration selection
-            var durationSelect = document.getElementById("durationSelect");
-            var customDurationInputs = document.getElementById("customDurationInputs");
-
-            function toggleCustomDuration() {
-                if (durationSelect.value === "custom") {
-                    customDurationInputs.style.display = "block";
-                } else {
-                    customDurationInputs.style.display = "none";
-                }
-            }
-
-            durationSelect.addEventListener("change", toggleCustomDuration);
-            toggleCustomDuration();
         });
     </script>
 </body>

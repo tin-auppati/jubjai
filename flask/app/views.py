@@ -25,7 +25,8 @@ from app.models.jubjai import User,Category,Transaction
 import calendar as cal
 from datetime import datetime, date , timedelta
 from zoneinfo import ZoneInfo
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedloadfrom 
+import logging
 
 thai_tz = ZoneInfo('Asia/Bangkok')
 @app.route('/')
@@ -359,20 +360,20 @@ def categories():
         
         name = request.form.get('name')
         description = request.form.get('description')
-        monthly_limit = request.form.get('monthly_limit')
+        limit = request.form.get('limit')
         icon_url = request.form.get('icon_url')
         transaction_type = request.form.get('transaction_type')
         
         try:
-            monthly_limit = Decimal(monthly_limit) if monthly_limit else None
+            limit = Decimal(limit) if limit else None
         except Exception as e:
-            monthly_limit = None
+            limit = None
 
         new_category = Category(
             name=name,
             user_id=current_user.id, 
             description=description,
-            monthly_limit=monthly_limit,
+            limit=limit,
             icon_url=icon_url,
             transaction_type=transaction_type
         )
@@ -585,8 +586,8 @@ def create_transactions():
         db.session.add(new_transaction)
         db.session.commit()
 
-        if category and category.monthly_limit:
-            monthly_sum = db.session.query(
+        if category and category.limit:
+            sum = db.session.query(
                 func.coalesce(func.sum(Transaction.amount), 0)
             ).filter(
                 Transaction.category_id == category_id,
@@ -596,7 +597,7 @@ def create_transactions():
                 Transaction.is_deleted == False
             ).scalar()
 
-            if monthly_sum > category.monthly_limit:
+            if sum > category.limit:
                 flash(f"Alert: You have exceeded the monthly limit for {category.name}.", "warning")
 
         return redirect(url_for('create_transactions', transaction_type=transaction_type))
@@ -921,17 +922,17 @@ def calculate_budget_for_category(user_id, category, month):
         Transaction.is_deleted == False
     ).all()
     spent_amount = sum(t.amount or 0 for t in transactions)
-    percent_used = (spent_amount / category.monthly_limit * 100) if category.monthly_limit > 0 else 0
+    percent_used = (spent_amount / category.limit * 100) if category.limit > 0 else 0
     return {
         'category_id': category.category_id,
         'name': category.name,
         'icon_url': category.icon_url,
-        'monthly_limit': category.monthly_limit,
+        'limit': category.limit,
         'spent_amount': spent_amount,
         'start_date': start_date,
         'end_date': end_date,
         'percent_used': percent_used,
-        'remaining': category.monthly_limit - spent_amount
+        'remaining': category.limit - spent_amount
     }
 
 
@@ -940,7 +941,7 @@ def calculate_budget_for_category(user_id, category, month):
 def budgets():
     user_id = current_user.id
     current_month = datetime.now().strftime('%Y-%m')
-    categories = Category.query.filter_by(user_id=user_id).filter(Category.monthly_limit.isnot(None)).all()
+    categories = Category.query.filter_by(user_id=user_id).filter(Category.limit.isnot(None)).all()
     computed_budgets = [calculate_budget_for_category(user_id, cat, current_month) for cat in categories]
 
     def classify_budget(budget):
@@ -994,7 +995,7 @@ def update_category_budget():
     if not category:
         return redirect(url_for('budgets'))
     
-    category.monthly_limit = new_budget_decimal
+    category.limit = new_budget_decimal
     category.limit_start_date = start_date  
     category.limit_end_date = end_date      
     db.session.commit()
@@ -1019,7 +1020,7 @@ def edit_category_budget():
     if not category:
         return redirect(url_for('budgets'))
     
-    category.monthly_limit = new_budget_decimal
+    category.limit = new_budget_decimal
     if duration_type:
         start_date, end_date = compute_budget_period(duration_type, base_date, custom_start, custom_end)
         category.limit_start_date = start_date
@@ -1033,13 +1034,12 @@ def delete_category_budget(category_id):
     category = Category.query.filter_by(category_id=category_id, user_id=current_user.id, is_deleted=False).first()
     if not category:
         return redirect(url_for('budgets'))
-    category.monthly_limit = None
+    category.limit = None
     db.session.commit()
     return redirect(url_for('budgets'))
 
 
-from flask import jsonify
-import logging
+
 
 @app.errorhandler(Exception)
 def handle_exception(e):
