@@ -95,15 +95,15 @@
         <!-- Filter Buttons for Transaction Type -->
         <div class="row mb-3 align-items-center">
             <div class="col-md-6">
-                <a href="{{ url_for('all_transactions', transaction_type='all', filter=request.args.get('filter', 'month'), date=request.args.get('date', current_date)) }}"
+                <a href="{{ url_for('all_transactions', transaction_type='all', filter=request.args.get('filter', 'day'), date=request.args.get('date', current_date)) }}"
                     class="btn {% if transaction_type=='all' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 btn-custom">
                     All Transactions
                 </a>
-                <a href="{{ url_for('all_transactions', transaction_type='expense', filter=request.args.get('filter', 'month'), date=request.args.get('date', current_date)) }}"
+                <a href="{{ url_for('all_transactions', transaction_type='expense', filter=request.args.get('filter', 'day'), date=request.args.get('date', current_date)) }}"
                     class="btn {% if transaction_type=='expense' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2">
                     Expenses
                 </a>
-                <a href="{{ url_for('all_transactions', transaction_type='income', filter=request.args.get('filter', 'month'), date=request.args.get('date', current_date)) }}"
+                <a href="{{ url_for('all_transactions', transaction_type='income', filter=request.args.get('filter', 'day'), date=request.args.get('date', current_date)) }}"
                     class="btn {% if transaction_type=='income' %}btn-primary{% else %}btn-outline-primary{% endif %}">
                     Incomes
                 </a>
@@ -111,15 +111,21 @@
 
             <!-- Right side: Date Filter with Arrows -->
             <div class="col-md-6 d-flex justify-content-end">
-                <form method="get" action="{{ url_for('all_transactions') }}" class="d-flex align-items-center" id="dateFilterForm">
+                <form method="get" action="{{ url_for('all_transactions') }}" class="d-flex align-items-center"
+                    id="dateFilterForm">
                     <input type="hidden" name="transaction_type" value="{{ transaction_type }}">
                     <select name="filter" id="filter" class="form-select me-2" style="width: auto;">
-                        <option value="day" {% if request.args.get('filter', 'month' )=='day' %}selected{% endif %}>Day</option>
-                        <option value="week" {% if request.args.get('filter', 'month' )=='week' %}selected{% endif %}>Week</option>
-                        <option value="month" {% if request.args.get('filter', 'month' )=='month' %}selected{% endif %}>Month
+                        <option value="day" {% if request.args.get('filter', 'day' )=='day' %}selected{% endif %}>Day
                         </option>
-                        <option value="year" {% if request.args.get('filter', 'month' )=='year' %}selected{% endif %}>Year</option>
-                        <option value="custom" {% if request.args.get('filter', 'month' )=='custom' %}selected{% endif %}>Custom
+                        <option value="week" {% if request.args.get('filter', 'day' )=='week' %}selected{% endif %}>
+                            Week</option>
+                        <option value="month" {% if request.args.get('filter', 'day' )=='month' %}selected{% endif %}>
+                            Month
+                        </option>
+                        <option value="year" {% if request.args.get('filter', 'day' )=='year' %}selected{% endif %}>
+                            Year</option>
+                        <option value="custom" {% if request.args.get('filter', 'day' )=='custom' %}selected{% endif
+                            %}>Custom
                         </option>
                     </select>
                     <!-- Single date input for non-custom filters -->
@@ -129,8 +135,9 @@
                     </div>
                     <!-- Custom date inputs for start and end dates -->
                     <div id="customDateInputs" style="display: none;">
-                        <input type="date" name="start_date" id="start_date" class="form-control me-2" style="width: auto;"
-                            placeholder="Start Date" value="{{ request.args.get('start_date', current_date) }}">
+                        <input type="date" name="start_date" id="start_date" class="form-control me-2"
+                            style="width: auto;" placeholder="Start Date"
+                            value="{{ request.args.get('start_date', current_date) }}">
                         <input type="date" name="end_date" id="end_date" class="form-control me-2" style="width: auto;"
                             placeholder="End Date" value="{{ request.args.get('end_date', current_date) }}">
                     </div>
@@ -160,7 +167,7 @@
                     <span class="text-success">+ ฿{{ "{:,.2f}".format(total_income) }}</span>
                 </strong>
                 <strong>
-                    Net:
+                    Total:
                     <!-- net_total could be positive or negative -->
                     {% if net_total >= 0 %}
                     <span class="text-success">+ ฿{{ "{:,.2f}".format(net_total) }}</span>
@@ -302,22 +309,47 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             const filterSelect = document.getElementById("filter");
+            const dateFilterForm = document.getElementById("dateFilterForm");
             const singleDateInput = document.getElementById("singleDateInput");
             const customDateInputs = document.getElementById("customDateInputs");
             const dateInput = document.getElementById("date");
 
+            if (!dateInput.value) {
+                dateInput.value = formatLocalDate(new Date());
+                updateRangeDisplay(); // Update the range display based on the new date
+            }
+
+            // When the filter dropdown changes:
+            document.getElementById("filter").addEventListener("change", function () {
+                toggleDateInputs();
+                updateRangeDisplay();
+                dateFilterForm.submit();
+            });
+
+            // When the date input changes:
+            document.getElementById("date").addEventListener("change", function () {
+                updateRangeDisplay();
+                dateFilterForm.submit();
+            }); 
+
+
             function toggleDateInputs() {
+                const filterSelect = document.getElementById("filter");
+                const singleDateInput = document.getElementById("singleDateInput");
+                const customDateInputs = document.getElementById("customDateInputs");
                 if (filterSelect.value === "custom") {
                     customDateInputs.style.display = "flex";
                     singleDateInput.style.display = "none";
                 } else {
                     customDateInputs.style.display = "none";
                     singleDateInput.style.display = "flex";
+                    
                 }
             }
 
             // Initialize the date inputs display based on the selected filter
             toggleDateInputs();
+            updateRangeDisplay();
 
             // Change display when the filter option changes
             filterSelect.addEventListener("change", toggleDateInputs);
@@ -417,74 +449,122 @@
         }
 
         function updateRangeDisplay() {
-            const filterType = document.getElementById("filter").value;
-            const dateInput = document.getElementById("date");
-            const displayEl = document.getElementById("dateRangeDisplay");
-            let currentDate = dateInput.value ? new Date(dateInput.value + "T00:00:00") : new Date();
-            let startDate, endDate;
+                const filterType = document.getElementById("filter").value;
+                const displayEl = document.getElementById("dateRangeDisplay");
 
-            if (filterType === "day") {
-                startDate = new Date(currentDate);
-                endDate = new Date(currentDate);
-            } else if (filterType === "week") {
-                let day = currentDate.getDay();
-                let diffToMonday = (day === 0) ? -6 : (1 - day);
-                startDate = new Date(currentDate);
-                startDate.setDate(currentDate.getDate() + diffToMonday);
-                endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + 6);
-                dateInput.value = formatLocalDate(startDate);
-            } else if (filterType === "month") {
-                let parts = dateInput.value.split("-");
-                let year = parseInt(parts[0]);
-                let month = parseInt(parts[1]) - 1;
-                startDate = new Date(year, month, 1);
-                endDate = new Date(year, month + 1, 0);
-                dateInput.value = formatLocalDate(startDate);
-            } else if (filterType === "year") {
-                let parts = dateInput.value.split("-");
-                let year = parseInt(parts[0]);
-                startDate = new Date(year, 0, 1);
-                endDate = new Date(year, 11, 31);
-                dateInput.value = formatLocalDate(startDate);
+                if (filterType === "custom") {
+                    const startDate = document.getElementById("start_date").value;
+                    const endDate = document.getElementById("end_date").value;
+                    if (startDate && endDate) {
+                        displayEl.textContent = `Showing transactions from ${startDate} to ${endDate}`;
+                    } else {
+                        displayEl.textContent = 'Please select both start and end dates.';
+                    }
+                } else {
+                    const dateInput = document.getElementById("date");
+                    let currentDate = dateInput.value ? new Date(dateInput.value + "T00:00:00") : new Date();
+                    let startDate, endDate;
+
+                    if (filterType === "day") {
+                        startDate = new Date(currentDate);
+                        endDate = new Date(currentDate);
+                    } else if (filterType === "week") {
+                        let day = currentDate.getDay();
+                        let diffToMonday = (day === 0) ? -6 : (1 - day);
+                        startDate = new Date(currentDate);
+                        startDate.setDate(currentDate.getDate() + diffToMonday);
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 6);
+                    } else if (filterType === "month") {
+                        let parts = dateInput.value.split("-");
+                        let year = parseInt(parts[0]);
+                        let month = parseInt(parts[1]) - 1;
+                        startDate = new Date(year, month, 1);
+                        endDate = new Date(year, month + 1, 0);
+                    } else if (filterType === "year") {
+                        let parts = dateInput.value.split("-");
+                        let year = parseInt(parts[0]);
+                        startDate = new Date(year, 0, 1);
+                        endDate = new Date(year, 11, 31);
+                    }
+
+                    displayEl.textContent = `Showing transactions from ${formatLocalDate(startDate)} to ${formatLocalDate(endDate)}`;
+                }
             }
 
-            displayEl.textContent = `Showing transactions from ${formatLocalDate(startDate)} to ${formatLocalDate(endDate)}`;
-        }
 
         function adjustDate(increment) {
             const filterType = document.getElementById("filter").value;
-            const dateInput = document.getElementById("date");
-            const form = dateInput.closest("form");
-            let currentDate = dateInput.value ? new Date(dateInput.value + "T00:00:00") : new Date();
-            let baseDate;
-            if (filterType === "day") {
-                baseDate = new Date(currentDate);
-                baseDate.setDate(baseDate.getDate() + increment);
-            } else if (filterType === "week") {
-                let day = currentDate.getDay();
-                let diffToMonday = (day === 0) ? -6 : (1 - day);
-                baseDate = new Date(currentDate);
-                baseDate.setDate(currentDate.getDate() + diffToMonday);
-                baseDate.setDate(baseDate.getDate() + (7 * increment));
-            } else if (filterType === "month") {
-                let parts = dateInput.value.split("-");
-                let year = parseInt(parts[0]);
-                let month = parseInt(parts[1]) - 1;
-                baseDate = new Date(year, month, 1);
-                baseDate.setMonth(baseDate.getMonth() + increment);
-            } else if (filterType === "year") {
-                let parts = dateInput.value.split("-");
-                let year = parseInt(parts[0]);
-                baseDate = new Date(year, 0, 1);
-                baseDate.setFullYear(baseDate.getFullYear() + increment);
-            }
-            dateInput.value = formatLocalDate(baseDate);
-            updateRangeDisplay();
+            const form = document.getElementById("dateFilterForm");
 
+            if (filterType === "custom") {
+                const startDateInput = document.getElementById("start_date");
+                const endDateInput = document.getElementById("end_date");
+                
+                let currentStartDate = startDateInput.value ? new Date(startDateInput.value + "T00:00:00") : new Date();
+                let currentEndDate = endDateInput.value ? new Date(endDateInput.value + "T00:00:00") : new Date();
+
+                
+                let newStartDate = new Date(currentStartDate);
+                newStartDate.setDate(newStartDate.getDate() + increment);
+
+                
+                if (increment > 0) {
+                    
+                    let maxStartDate = new Date(currentEndDate);
+                    maxStartDate.setDate(maxStartDate.getDate() - 1);
+                    
+                    if (newStartDate > maxStartDate) {
+                        newStartDate = maxStartDate;
+                    }
+                }
+                
+
+                startDateInput.value = formatLocalDate(newStartDate);
+            } else {
+                const dateInput = document.getElementById("date");
+                let currentDate = dateInput.value ? new Date(dateInput.value + "T00:00:00") : new Date();
+                let baseDate;
+                if (filterType === "day") {
+                    baseDate = new Date(currentDate);
+                    baseDate.setDate(baseDate.getDate() + increment);
+                } else if (filterType === "week") {
+                    let day = currentDate.getDay();
+                    let diffToMonday = (day === 0) ? -6 : (1 - day);
+                    baseDate = new Date(currentDate);
+                    baseDate.setDate(currentDate.getDate() + diffToMonday);
+                    baseDate.setDate(baseDate.getDate() + (7 * increment));
+                } else if (filterType === "month") {
+                    let parts = dateInput.value.split("-");
+                    let year = parseInt(parts[0]);
+                    let month = parseInt(parts[1]) - 1;
+                    baseDate = new Date(year, month, 1);
+                    baseDate.setMonth(baseDate.getMonth() + increment);
+                } else if (filterType === "year") {
+                    let parts = dateInput.value.split("-");
+                    let year = parseInt(parts[0]);
+                    baseDate = new Date(year, 0, 1);
+                    baseDate.setFullYear(baseDate.getFullYear() + increment);
+                }
+                dateInput.value = formatLocalDate(baseDate);
+            }
+            updateRangeDisplay();
             form.submit();
         }
 
+        document.getElementById("start_date").addEventListener("change", function () {
+                // Only submit if both dates are selected
+                if (document.getElementById("end_date").value) {
+                    updateRangeDisplay();
+                    dateFilterForm.submit();
+                }
+            });
+            document.getElementById("end_date").addEventListener("change", function () {
+                if (document.getElementById("start_date").value) {
+                    updateRangeDisplay();
+                    dateFilterForm.submit();
+                }
+            });
         document.getElementById("prevDate").addEventListener("click", function () {
             adjustDate(-1);
         });

@@ -5,7 +5,7 @@ body {
 /* Sidebar styling */
 .sidebar {
     padding-top: 1rem;
-    position: absolute;
+    position: fixed;
     width: 70px;
     height: 100vh;
     background: #dddbf8;
@@ -67,27 +67,47 @@ body {
     width: 100%;
 }
 
+.custom-card {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.custom-card:hover {
+    box-shadow: 0 5px 9px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.2s ease-in-out
+}
+
 .card-custom {
-    height: 150px; /* กำหนดความสูงคงที่ */
-    border: 2px solid #dee2e6; /* เส้นกรอบ */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* เงาเล็กน้อย */
+    height: 150px;
+    /* กำหนดความสูงคงที่ */
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
-  
+
+.card-custom:hover {
+    box-shadow: 0 5px 9px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.2s ease-in-out
+}
+
 .card-custom h3 {
-    font-size: 2.5rem; /* ตัวเลขใหญ่ */
-    font-weight: 700;
-    color: #2c3e50; /* สีตัวเลข */
+    font-size: 2.5rem;
+    /* ตัวเลขใหญ่ */
+    font-weight: 600;
+    color: #555454;
+    /* สีตัวเลข */
 }
-  
+
 .card-custom h5 {
     font-size: 1.2rem;
-    color: #7f8c8d; /* สีข้อความ */
-    text-transform: uppercase; /* ตัวใหญ่ทั้งหมด */
+    color: #7f8c8d;
+    /* สีข้อความ */
+    text-transform: uppercase;
+    /* ตัวใหญ่ทั้งหมด */
     letter-spacing: 1px;
 }
-        
+
 /* Main content area */
 .main-content {
+    font-family: 'Montserrat', sans-serif;
     margin-left: 60px;
     /* same width as sidebar */
     padding: 2rem;
@@ -148,54 +168,129 @@ body {
 
 .chart-container {
     position: relative;
-    height: 300px; /* หรือกำหนดตามต้องการ */
+    height: 300px;
+    /* หรือกำหนดตามต้องการ */
     width: 100%;
-  }
-
-  
-  /* ===== Calendar Styles ===== */
-table.calendar {
-  border-collapse: collapse;
-  width: 100%;
-  margin-top: 10px;
 }
+
+
+/* ===== Calendar Styles ===== */
+
+.custom-calendar {
+    padding-bottom: 10px;
+    background-color: #fff0f8;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    border-radius: 5px 5px 0 0;
+}
+
+.custom-btn {
+    border: none;
+    background-color: #fff0f8;
+}
+
+table.calendar {
+    border-collapse: collapse;
+    width: 100%;
+}
+
 table.calendar th,
 table.calendar td {
-  border: 1px solid #ccc;
-  text-align: center;
-  width: 14.28%; /* 100/7 = ~14.28% */
-  height: 90px;
-  vertical-align: top;
+    border: 1px solid #ccc;
+    text-align: center;
+    width: 14.28%;
+    /* 100/7 = ~14.28% */
+    height: 90px;
+    vertical-align: top;
 }
+
 table.calendar th {
-  background: #eee;
-  padding: 5px;
+    background: #eee;
+    padding: 5px;
 }
 
 /* กล่องแสดง Event แต่ละอัน */
 .event {
-  margin: 2px 0;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  line-height: 1.2rem;
+    margin: 2px 0;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    line-height: 1.2rem;
 }
+
 .event-income {
-  background-color: #c4f4c4; /* เขียวอ่อน */
+    background-color: #c4f4c4;
+    /* เขียวอ่อน */
 }
+
 .event-expense {
-  background-color: #f4c4c4; /* แดงอ่อน */
+    background-color: #f4c4c4;
+    /* แดงอ่อน */
 }
 
 .equal-dimensions {
     height: 100%;
-  }
+}
+
+.calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border-right: 1px solid #ccc; 
+    border-bottom: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+}
+
+.calendar-day {
+    height: 120px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background-color: #fff0f8;
+}
+
+.income-badge {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.expense-badge {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
 
 /* Additional overrides so that the main content fits the viewport */
 .main-content {
     min-height: 100vh;
-  }
-  /* Adjust this value as needed based on your top cards height and padding */
-  .chart-calendar-row {
+}
+
+/* Adjust this value as needed based on your top cards height and padding */
+.chart-calendar-row {
     height: calc(100vh - 200px);
-  }
+}
+
+.floating-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.floating-btn {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in-out;
+}

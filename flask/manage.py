@@ -1,7 +1,6 @@
 from flask.cli import FlaskGroup
 from werkzeug.security import generate_password_hash
 from app import app, db
-from app.models.contact import Contact
 from app.models.jubjai import User,Category,Transaction
 from app import views
 from datetime import datetime
