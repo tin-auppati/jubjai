@@ -748,32 +748,35 @@ def report():
     else:
         date_range = (selected_date, selected_date)
     
-    # ดึงข้อมูลธุรกรรมจากฐานข้อมูล
     start_date, end_date = date_range
-    # ดึงข้อมูลธุรกรรมจากฐานข้อมูล (ไม่ใช้ joinedload)
     transactions_db = get_user_transactions(current_user.id, start_date, end_date)
     
-    # ดึง category_ids ทั้งหมดจากธุรกรรม
     category_ids = {t.category_id for t in transactions_db}
-    
-    # Query หา categories ที่เกี่ยวข้อง
     categories = Category.query.filter(Category.category_id.in_(category_ids)).all()
     category_map = {c.category_id: c.to_dict() for c in categories}
     
-    # แปลงข้อมูล transaction พร้อม map category เข้าไป
     transactions = []
     for t in transactions_db:
         transaction_data = t.to_dict()
         transaction_data['category'] = category_map.get(t.category_id, {})
         transactions.append(transaction_data)
 
+    # หาก filter เป็น day ให้นำข้อความแจ้งเตือนจาก Transaction.get_today_message()
+    if filter_type == 'day':
+        today_message = Transaction.get_today_message(current_user.id, selected_date)
+    else:
+        today_message = ""
+    
     tz = ZoneInfo("Asia/Bangkok")
     
     return render_template("report.html", 
                            transactions=transactions,
                            filter_type=filter_type, 
                            date_range=date_range, 
-                           current_date=datetime.now(tz).date().strftime('%Y-%m-%d'))
+                           current_date=datetime.now(tz).date().strftime('%Y-%m-%d'),
+                           today_message=today_message)
+
+
 
 @login_required
 @app.route('/Calendar', methods=['GET'])

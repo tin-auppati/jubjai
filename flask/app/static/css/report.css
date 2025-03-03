@@ -94,3 +94,9 @@ body {
     width: 800px;
     margin: 0 auto;
   }
+
+  /*ส่วนที่แจ้งว่า ไม่มี inosme expese*/
+  .center {
+    text-align: center;
+    font-size: 2em; /* ปรับขนาดตัวอักษรได้ตามต้องการ */
+  }

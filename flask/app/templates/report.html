@@ -72,6 +72,7 @@
 
   <!-- Main Content -->
   <div class="main-content">
+    <h2 class="mb-4">Charts</h2>
     <!-- ฟอร์มสำหรับกรองข้อมูล (ถ้าต้องการ) -->
     <div class="col-md-6 d-flex">
       <form method="get" action="{{ url_for('report') }}" class="d-flex align-items-center" id="dateFilterForm">
@@ -97,10 +98,11 @@
       </div>
   </div>
   
-
+    <br>
     <div class="row mb-3">
       <div class="col-12 filter-form">
         <!-- ตัวเลือก Transaction Type -->
+        <label for="chartType">Show all categories of :</label>
         <label>
             <input type="radio" name="transactionType" value="expense" checked> Expense
           </label>
@@ -113,14 +115,23 @@
       </div>
     </div>
 
+    <!-- ส่วนที่เปลี่ยนแปลงใน HTML สำหรับเลือก Chart Type -->
     <div class="row mb-3">
       <div class="col-12 filter-form">
-        <!-- เลือกประเภทของ Chart -->
-        <label for="chartType">Chart Type:</label>
-        <select id="chartType">
-          <option value="pie">Pie chart</option>
-          <option value="bar">Bar chart</option>
-        </select>
+        <div class="row">
+          <div class="col-auto">
+            <label>Chart Type :</label><br>
+          </div>
+          <div class="col-auto">
+            <label>
+              <input type="radio" name="chartType" value="pie" checked> Pie chart
+            </label>
+            <br>
+            <label>
+              <input type="radio" name="chartType" value="bar"> Bar chart
+            </label>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -132,12 +143,14 @@
     </div>
 
     <!-- ส่วนที่จะแสดงกราฟ -->
-    <div class="row">
-      <div class="col-12 chart-container">
+    <div class="row-auto">
+      <div class="col-auto chart-container">
         <canvas id="myChart"></canvas>
+        <div id="chartMessage"></div>
       </div>
     </div>
   </div>
+
 
   <!-- ส่งข้อมูลรายการธุรกรรมจากฐานข้อมูลไปยัง JavaScript -->
   <script>
@@ -210,6 +223,7 @@
     // อัพเดทแสดงผลครั้งแรก
     updateRangeDisplay();
 });
+
 </script>
 
   <!-- JavaScript สำหรับ Chart.js -->
@@ -270,89 +284,118 @@ function showReport() {
 document.getElementById('showReportBtn').addEventListener('click', showReport);
 
   
-    // ฟังก์ชันสำหรับกรองข้อมูล โดยอ้างอิงข้อมูลใน key "transaction"
-    function filterTransactions(data) {
+    // กรองข้อมูลตาม transaction type, วันที่ และดึงค่า chart type จาก radio
+  function filterTransactions(data) {
     const transactionTypeEls = document.getElementsByName('transactionType');
-    const chartType = document.getElementById('chartType').value;
+    const chartType = document.querySelector('input[name="chartType"]:checked').value;
     let selectedTransactionType = 'Both';
 
     transactionTypeEls.forEach(el => {
-        if (el.checked) selectedTransactionType = el.value;
+      if (el.checked) selectedTransactionType = el.value;
     });
 
     const selectedDate = document.getElementById('date').value;
     let filtered = data;
 
+    // กรองตามประเภท (ถ้าไม่ใช่ Both)
     if (selectedTransactionType !== 'Both') {
       filtered = filtered.filter(t => t.transaction_type.toLowerCase() === selectedTransactionType.toLowerCase());
     }
 
+    // กรองตามวันที่ (ในทุกกรณี)
     if (selectedDate) {
-        filtered = filtered.filter(t => t.transaction_date === selectedDate);
+      filtered = filtered.filter(t => t.transaction_date === selectedDate);
     }
 
     return { filtered, chartType, transactionType: selectedTransactionType };
-}
+  }
 
-function groupByCategory(transactions) {
-  const map = {};
-  transactions.forEach((t) => {
-    // ใช้ข้อมูล category จาก field ที่ map มา
-    const catName = t.category?.name || 'Other'; 
-    if (!map[catName]) map[catName] = 0;
-    map[catName] += parseFloat(t.amount);
-  });
-  return map;
-}
-  
-    // ฟังก์ชันสำหรับสร้างหรืออัปเดต Chart
-    function renderChart(chartType, labels, data) {
-  if (myChart) myChart.destroy();
-  
-  const ctx = document.getElementById('myChart').getContext('2d');
-  myChart = new Chart(ctx, {
-    type: chartType,
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Amount',
-        data: data,
-        backgroundColor: [
-          '#FF6384', '#36A2EB', '#FFCE56', 
-          '#4BC0C0', '#9966FF', '#FF9F40'
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        title: { 
-          display: true, 
-          text: `${document.getElementById('chartType').value.toUpperCase()} Chart - ${document.querySelector('input[name="transactionType"]:checked').value.toUpperCase()}`
+  // จัดกลุ่มข้อมูลตาม category (ใช้เมื่อเลือก income หรือ expense)
+  function groupByCategory(transactions) {
+    const map = {};
+    transactions.forEach(t => {
+      const catName = t.category?.name || 'Other';
+      if (!map[catName]) map[catName] = 0;
+      map[catName] += parseFloat(t.amount);
+    });
+    return map;
+  }
+
+  // ฟังก์ชันสำหรับสร้างหรืออัปเดต Chart
+  function renderChart(chartType, labels, data) {
+    if (myChart) myChart.destroy();
+    const ctx = document.getElementById('myChart').getContext('2d');
+    myChart = new Chart(ctx, {
+      type: chartType,
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Amount',
+          data: data,
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56',
+            '#4BC0C0', '#9966FF', '#FF9F40'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          title: {
+            display: true,
+            text: `${chartType.toUpperCase()} Chart - ${document.querySelector('input[name="transactionType"]:checked').value.toUpperCase()}`
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
 
-// ปรับขนาด canvas ด้วย CSS
-document.getElementById('myChart').parentElement.style.height = '600px';
-document.getElementById('myChart').parentElement.style.width = '800px';
+  // ฟังก์ชันหลักเมื่อกดปุ่ม "SHOW REPORT"
+  function showReport() {
+    const { filtered, chartType, transactionType } = filterTransactions(transactions);
+    const chartMessageEl = document.getElementById('chartMessage');
 
-  
-    // ฟังก์ชันหลัก เมื่อกดปุ่ม "SHOW REPORT"
-    function showReport() {
-      const { filtered, chartType } = filterTransactions(transactions);
-      const grouped = groupByCategory(filtered);
-      const labels = Object.keys(grouped);
-      const data = Object.values(grouped);
-      renderChart(chartType, labels, data);
+    if (transactionType === "Both") {
+      // กรณีเลือก Both: สรุปยอด income และ expense แยกกัน
+      let incomeTotal = 0, expenseTotal = 0;
+      filtered.forEach(t => {
+        if (t.transaction_type.toLowerCase() === 'income') {
+          incomeTotal += parseFloat(t.amount);
+        } else if (t.transaction_type.toLowerCase() === 'expense') {
+          expenseTotal += parseFloat(t.amount);
+        }
+      });
+      if (incomeTotal === 0 && expenseTotal === 0) {
+        if (myChart) myChart.destroy();
+        document.getElementById('myChart').style.display = "none";
+        chartMessageEl.innerHTML = '<p class="center">Today there is no income or expenses.</p>';
+      } else {
+        document.getElementById('myChart').style.display = "block";
+        chartMessageEl.innerHTML = "";
+        renderChart(chartType, ['Income', 'Expense'], [incomeTotal, expenseTotal]);
+      }
+    } else {
+      // กรณีเลือกเฉพาะ income หรือ expense
+      let totalAmount = filtered.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      if (totalAmount === 0) {
+        if (myChart) myChart.destroy();
+        document.getElementById('myChart').style.display = "none";
+        chartMessageEl.innerHTML = `<p class="center">No ${transactionType} Today.</p>`;
+      } else {
+        document.getElementById('myChart').style.display = "block";
+        chartMessageEl.innerHTML = "";
+        const grouped = groupByCategory(filtered);
+        const labels = Object.keys(grouped);
+        const data = Object.values(grouped);
+        renderChart(chartType, labels, data);
+      }
     }
-  
-    // ผูก event ให้ปุ่ม SHOW REPORT
-    document.getElementById('showReportBtn').addEventListener('click', showReport);
+  }
+
+  // ผูก event ให้ปุ่ม SHOW REPORT
+  document.getElementById('showReportBtn').addEventListener('click', showReport);
   </script>
 
   <!-- Bootstrap and Plugin JS -->
