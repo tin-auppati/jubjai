@@ -390,6 +390,7 @@
                     ${data.amount ? `Detected amount: ฿${data.amount}` : 'Processing completed'}
                 </div>
             `;
+          console.log(data)
           if (data.amount) {
             document.getElementById('total').value = data.amount;
           }
