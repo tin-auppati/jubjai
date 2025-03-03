@@ -29,6 +29,57 @@ from sqlalchemy.orm import joinedload
 import logging
 
 thai_tz = ZoneInfo('Asia/Bangkok')
+def create_default_categories_for_user(user):
+    
+    default_categories = [
+        {
+            "name": "Food",
+            "icon_url": "https://cdn-icons-png.flaticon.com/512/1046/1046857.png",
+            "transaction_type": "expense"
+        },
+        {
+            "name": "Shopping",
+            "icon_url": "https://cdn-icons-png.flaticon.com/512/3081/3081415.png",
+            "transaction_type": "expense"
+        },
+        {
+            "name": "Pay the bill",
+            "icon_url": "https://cdn-icons-png.flaticon.com/512/8583/8583679.png",
+            "transaction_type": "expense"
+        },
+        {
+            "name": "Gift",
+            "icon_url": "https://cdn-icons-png.flaticon.com/512/1139/1139931.png",
+            "transaction_type": "expense"
+        },
+        {
+            "name": "Travel",
+            "icon_url": "https://cdn-icons-png.flaticon.com/512/9482/9482066.png",
+            "transaction_type": "expense"
+        },
+        {
+            "name": "Income",
+            "icon_url": "https://cdn-icons-png.flaticon.com/512/2871/2871405.png",
+            "transaction_type": "income"
+        },
+        {
+            "name": "Money Saving",
+            "icon_url": "https://cdn-icons-png.flaticon.com/512/9018/9018937.png",
+            "transaction_type": "income"
+        }
+    ]
+    
+    for cat in default_categories:
+        # Check if the category already exists for the user
+        if not Category.query.filter_by(user_id=user.id, name=cat["name"]).first():
+            new_category = Category(
+                name=cat["name"],
+                user_id=user.id,
+                icon_url=cat["icon_url"],
+                transaction_type=cat["transaction_type"]
+            )
+            db.session.add(new_category)
+    db.session.commit()
 @app.route('/')
 def home():
     return redirect(url_for('users_index'))
@@ -260,6 +311,7 @@ def users_signup():
                                        password=hashed_password,
                                        avatar_url=avatar_url)
                    db.session.add(new_user)
+                   create_default_categories_for_user(new_user)
                    return redirect(url_for('users_login'))
            # Transaction is committed when exiting the 'with' block
            except Exception as ex:
@@ -348,7 +400,7 @@ def google_auth():
                                password, method='sha256'),
                            avatar_url=picture)
         db.session.add(new_user)
-        db.session.commit()
+        create_default_categories_for_user(new_user)
         user = User.query.filter_by(email=email).first()
     login_user(user)
     return redirect('/homepage')
