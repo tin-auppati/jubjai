@@ -295,3 +295,14 @@ table.calendar th {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s ease-in-out;
 }
+
+
+.card p-3 equal-dimensions custom-card {
+    border-radius: 10px; 
+    height: 680px;
+}
+.chart-container h5 {
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 600;
+}

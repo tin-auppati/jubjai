@@ -797,7 +797,7 @@ def Calendar():
                 date_obj = date(year, month, int(day))
                 transactions = Transaction.query.filter(
                     Transaction.user_id == current_user.id,
-                    Transaction.transaction_date == date_obj,
+                    Transaction.transaction_date == date_obj
                 ).all()
                 
                 return jsonify({
@@ -811,7 +811,8 @@ def Calendar():
                 
                 transactions = Transaction.query.filter(
                     Transaction.user_id == current_user.id,
-                    Transaction.transaction_date.between(start_date, end_date)
+                    Transaction.transaction_date.between(start_date, end_date),
+                    Transaction.is_deleted == False
                 ).all()
                 
                 return jsonify([t.to_dict() for t in transactions])
