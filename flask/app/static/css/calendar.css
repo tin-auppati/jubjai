@@ -1,14 +1,16 @@
-.body{
-  font-family: 'Montserrat', sans-serif;
-} 
+.sidebar:hover ~ .main-content {
+  transform: translateX(140px); 
+}
  
  /* ===== Calendar Styles ===== */
  .main-content {
+   font-family: 'Montserrat', sans-serif;
    display: flex;
    margin-left: 230px;
    margin-top: 30px;
    margin-right: 160px;
    justify-content: center;
+   transition: transform 0.5s ease;
  }
 
  .custom-btn {

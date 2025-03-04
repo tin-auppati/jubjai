@@ -67,6 +67,24 @@ body {
     width: 100%;
 }
 
+.sidebar:hover ~ .main-content {
+    transform: translateX(140px); 
+}
+
+/* Main content area */
+.main-content {
+    font-family: 'Montserrat', sans-serif;
+    transition: transform 0.5s ease;
+    margin-left: 60px;
+    /* same width as sidebar */
+    padding: 2rem;
+}
+
+.main-content h2 {
+    margin-bottom: 1rem;
+}
+
+
 .custom-card {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
@@ -103,18 +121,6 @@ body {
     text-transform: uppercase;
     /* ตัวใหญ่ทั้งหมด */
     letter-spacing: 1px;
-}
-
-/* Main content area */
-.main-content {
-    font-family: 'Montserrat', sans-serif;
-    margin-left: 60px;
-    /* same width as sidebar */
-    padding: 2rem;
-}
-
-.main-content h2 {
-    margin-bottom: 1rem;
 }
 
 /* "New Expense" button alignment */

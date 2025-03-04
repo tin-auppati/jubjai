@@ -68,9 +68,14 @@ body {
     width: 100%;
 }
 
+.sidebar:hover ~ .main-content {
+    transform: translateX(140px); 
+}
+
 /* Main content area */
 .main-content {
     font-family: 'Montserrat', sans-serif;
+    transition: transform 0.5s ease;
     margin-left: 100px;
     margin-top: 30px !important;
     margin-right: 30px;

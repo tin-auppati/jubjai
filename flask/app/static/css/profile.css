@@ -66,6 +66,10 @@ body {
   width: 100%;
 }
 
+.sidebar:hover ~ .main-content {
+  transform: translateX(140px); 
+}
+
 /* Profile Container */
 .profile-container {
   display: flex;
