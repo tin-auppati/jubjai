@@ -66,3 +66,8 @@ body {
     bottom: 1rem;
     width: 100%;
 }
+
+.sidebar:hover ~ .main-content {
+    transform: translateX(140px);
+    max-width: calc(100vw - 270px);
+  }

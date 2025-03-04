@@ -66,7 +66,8 @@ body {
 }
 
 .sidebar:hover ~ .main-content {
-    transform: translateX(140px); 
+    transform: translateX(140px);
+    max-width: calc(100vw - 270px);
 }
 
 /* Main content area */

@@ -1,5 +1,5 @@
 .sidebar:hover ~ .main-content {
-  transform: translateX(140px); 
+  transform: translateX(140px);
 }
  
  /* ===== Calendar Styles ===== */
